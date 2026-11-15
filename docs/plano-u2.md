@@ -14,6 +14,45 @@
 
 ---
 
+## Andamento (atualizado em 15/11/2026)
+
+| Etapa | Situação | PR |
+|---|---|---|
+| 0 | ✅ concluída em 14/11 | #9 (catálogo), #10 (SDD e este plano) |
+| A | ✅ concluída em 14/11 | #11 |
+| B | ✅ concluída em 14/11 | #12 |
+| D | ✅ concluída em 14/11 (adiantada, porque o H1 espera a instalação do `uv`) | #13 |
+| C | ✅ concluída em 14/11 | #14 |
+| H1 | ⏳ esperando o `uv` (H1.0); H1.1 com a Drielly até 17/11 | — |
+| I | ⏳ entrega em 24/11; I.2 com a Drielly até 19/11 | — |
+| H2 | ⏳ entrega em 27/11 | — |
+| E | ⏳ próxima etapa de Web | — |
+| F | ⏳ depois da E | — |
+| G | ⏳ Thainá: leitura do catálogo, sessão, carrinho, pedidos e painel já liberados na API | — |
+| J | ⏳ deploy de teste (J.0) em 21/11 | — |
+| K | ⏳ 25–30/11 | — |
+| L | ⏳ 30/11–02/12 | — |
+
+- `main` em `0913392`: **109 testes** da API passando; bateria do FCCPD U1 com os mesmos vereditos.
+- Plano de Testes v2.5 (15/11): 26 de 30 casos executados; faltam CT-06 e CT-07 (E), CT-18 (H) e CT-10 (tela).
+- **Achado em aberto:** a view `vw_indicadores_artesao` soma pedidos cancelados e só conta `pendente`
+  (todo pedido novo nasce `confirmado`). A API calcula os indicadores sem ela; a correção da view fica com a Drielly.
+- A ordem real mudou em relação à agenda abaixo (D e C vieram antes do H1); a agenda fica como registro do plano original.
+
+## Divisão aprovada em 14/11/2026
+
+| Pessoa | Tarefas |
+|---|---|
+| **Drielly** (banco) | **H1.1** seed com a artesã da Comunidade do Pilar e mais histórico de compras (até 17/11) · **I.2** dados em volume para o benchmark do FCCPD (até 19/11) · correção da `vw_indicadores_artesao` · **K** code smell no SQL |
+| **Ana** (qualidade) | manutenção do Plano de Testes (8.4–8.6) a partir dos relatórios de cada etapa · aceite com personas das telas ligadas à API · relatório de validação contra os critérios de aceitação (REQ, etapa L, até 30/11) · **K** code smell nos testes |
+| **Thainá** (frontend) | **G.1–G.8** (G.1–G.3 até 20/11) · **K** code smell no frontend |
+| **Everton** (backend e IA) | todas as demais etapas · **K** code smell no backend |
+
+Se o H1.1 ou o I.2 não chegarem até 18/11, o Everton assume, para não arriscar o prazo do FCCPD (24/11).
+Commits da equipe saem da conta de cada pessoa.
+
+---
+
 ## Regras para todas as etapas
 
 - **Um PR por etapa**, branch `feat/u2-<etapa>-<nome>`, aberto por quem fez a etapa.

@@ -2,8 +2,9 @@
 
 Aplicação web que conecta artesãos e empreendedores criativos de Pernambuco a compradores de
 todo o país. Projeto Integrador. O repositório reúne o **frontend responsivo com Fake API**
-(Avaliação 1), o **backend da entrega de FCCPD** (concorrência no checkout e fila assíncrona) e
-o **módulo de recomendação em BentoML** da disciplina de IA.
+(Avaliação 1), o **backend** (nascido na entrega de FCCPD, com concorrência no checkout e fila
+assíncrona, e que na U2 virou a API REST real do marketplace) e o **módulo de recomendação em
+BentoML** da disciplina de IA. O andamento da U2 está em [`docs/plano-u2.md`](docs/plano-u2.md).
 
 **Equipe:** Ana Beatriz Lopes, Everton Nunes, Drielly Santiago e Thainá Pontes.
 
@@ -259,7 +260,8 @@ Também é possível criar uma conta nova em `/cadastro` (Comprador ou Artesão 
 
 ```
 frontend/   aplicação Next.js (App Router) — o entregável desta avaliação
-backend/    API Node/Express + PostgreSQL da entrega de FCCPD (checkout concorrente e fila assíncrona)
+backend/    API Node/Express + PostgreSQL: checkout concorrente e fila (FCCPD) e a API REST da U2
+            (Prisma, JWT em cookie, carrinho, pedidos, painel do artesão, cache) — ver backend/README.md
 ia-recomendacao/  módulo de recomendação em BentoML (AV2 de IA)
 evidencias/ saídas reais dos testes de concorrência e da fila (FCCPD)
 RELATORIO.md  relatório da entrega de FCCPD
