@@ -31,18 +31,26 @@
 -- ----------------------------------------------------------------------------
 -- Usuários (mocks/usuarios.mock.ts + compradores das avaliações/pedidos)
 -- ----------------------------------------------------------------------------
-INSERT INTO usuario (id, nome, email, senha_hash, perfil, avatar_url, criado_em) VALUES
-  (1,  'Camila Torres',          'comprador@origem.com.br',   '$2a$10$JQELM0iQFH9b/dfw7mgyC.lgfl4wX7a/PRUkPAAfhfZBr3.Yf5OBu', 'comprador',     'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop&auto=format', '2025-02-10 12:00:00'),
-  (2,  'Maria das Graças Silva', 'maria@origem.com.br',       '$2a$10$JQELM0iQFH9b/dfw7mgyC.lgfl4wX7a/PRUkPAAfhfZBr3.Yf5OBu', 'artesao',       'https://images.unsplash.com/photo-1641338215253-9e9c8cf48a5a?w=200&h=200&fit=crop&auto=format', '2024-11-03 12:00:00'),
-  (3,  'João Ferreira Neto',     'joao@origem.com.br',        '$2a$10$JQELM0iQFH9b/dfw7mgyC.lgfl4wX7a/PRUkPAAfhfZBr3.Yf5OBu', 'artesao',       'https://images.unsplash.com/photo-1655138493602-49901f93d250?w=200&h=200&fit=crop&auto=format', '2024-12-15 12:00:00'),
-  (4,  'Ana Luíza Rodrigues',    'ana@origem.com.br',         '$2a$10$JQELM0iQFH9b/dfw7mgyC.lgfl4wX7a/PRUkPAAfhfZBr3.Yf5OBu', 'artesao',       'https://images.unsplash.com/photo-1628006025173-7c5558fa97c1?w=200&h=200&fit=crop&auto=format', '2025-01-20 12:00:00'),
-  (5,  'Sebastião Mendes',       'sebastiao@origem.com.br',   '$2a$10$JQELM0iQFH9b/dfw7mgyC.lgfl4wX7a/PRUkPAAfhfZBr3.Yf5OBu', 'artesao',       'https://images.unsplash.com/photo-1603219527847-24c87f552a77?w=200&h=200&fit=crop&auto=format', '2025-03-05 12:00:00'),
-  (6,  'Admin Origem',           'admin@origem.com.br',       '$2a$10$JQELM0iQFH9b/dfw7mgyC.lgfl4wX7a/PRUkPAAfhfZBr3.Yf5OBu', 'administrador', NULL, '2024-10-01 12:00:00'),
-  (7,  'Outro Cliente',          'outro.cliente@exemplo.com', '$2a$10$JQELM0iQFH9b/dfw7mgyC.lgfl4wX7a/PRUkPAAfhfZBr3.Yf5OBu', 'comprador',     NULL, '2025-06-01 12:00:00'),
-  (8,  'Rafael Souza',           'rafael@exemplo.com',        '$2a$10$JQELM0iQFH9b/dfw7mgyC.lgfl4wX7a/PRUkPAAfhfZBr3.Yf5OBu', 'comprador',     NULL, '2025-06-10 12:00:00'),
-  (9,  'Juliana Prado',          'juliana@exemplo.com',       '$2a$10$JQELM0iQFH9b/dfw7mgyC.lgfl4wX7a/PRUkPAAfhfZBr3.Yf5OBu', 'comprador',     NULL, '2025-06-12 12:00:00'),
-  (10, 'Bruno Ferreira',         'bruno@exemplo.com',         '$2a$10$JQELM0iQFH9b/dfw7mgyC.lgfl4wX7a/PRUkPAAfhfZBr3.Yf5OBu', 'comprador',     NULL, '2025-06-15 12:00:00'),
-  (11, 'Marcela Andrade',        'marcela@exemplo.com',       '$2a$10$JQELM0iQFH9b/dfw7mgyC.lgfl4wX7a/PRUkPAAfhfZBr3.Yf5OBu', 'comprador',     NULL, '2025-06-20 12:00:00');
+-- Senha de TODAS as contas: origem123 (bcrypt, custo 10). Um lugar só para trocar.
+WITH senha_padrao AS (
+  SELECT '$2a$10$JQELM0iQFH9b/dfw7mgyC.lgfl4wX7a/PRUkPAAfhfZBr3.Yf5OBu'::varchar AS hash
+)
+INSERT INTO usuario (id, nome, email, senha_hash, perfil, avatar_url, criado_em)
+SELECT v.id, v.nome, v.email, senha_padrao.hash, v.perfil::perfil_usuario, v.avatar_url,
+       v.criado_em::timestamp
+FROM senha_padrao, (VALUES
+  (1,  'Camila Torres',          'comprador@origem.com.br',   'comprador',     'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop&auto=format', '2025-02-10 12:00:00'),
+  (2,  'Maria das Graças Silva', 'maria@origem.com.br',       'artesao',       'https://images.unsplash.com/photo-1641338215253-9e9c8cf48a5a?w=200&h=200&fit=crop&auto=format', '2024-11-03 12:00:00'),
+  (3,  'João Ferreira Neto',     'joao@origem.com.br',        'artesao',       'https://images.unsplash.com/photo-1655138493602-49901f93d250?w=200&h=200&fit=crop&auto=format', '2024-12-15 12:00:00'),
+  (4,  'Ana Luíza Rodrigues',    'ana@origem.com.br',         'artesao',       'https://images.unsplash.com/photo-1628006025173-7c5558fa97c1?w=200&h=200&fit=crop&auto=format', '2025-01-20 12:00:00'),
+  (5,  'Sebastião Mendes',       'sebastiao@origem.com.br',   'artesao',       'https://images.unsplash.com/photo-1603219527847-24c87f552a77?w=200&h=200&fit=crop&auto=format', '2025-03-05 12:00:00'),
+  (6,  'Admin Origem',           'admin@origem.com.br',       'administrador', NULL, '2024-10-01 12:00:00'),
+  (7,  'Outro Cliente',          'outro.cliente@exemplo.com', 'comprador',     NULL, '2025-06-01 12:00:00'),
+  (8,  'Rafael Souza',           'rafael@exemplo.com',        'comprador',     NULL, '2025-06-10 12:00:00'),
+  (9,  'Juliana Prado',          'juliana@exemplo.com',       'comprador',     NULL, '2025-06-12 12:00:00'),
+  (10, 'Bruno Ferreira',         'bruno@exemplo.com',         'comprador',     NULL, '2025-06-15 12:00:00'),
+  (11, 'Marcela Andrade',        'marcela@exemplo.com',       'comprador',     NULL, '2025-06-20 12:00:00')
+) AS v(id, nome, email, perfil, avatar_url, criado_em);
 SELECT setval('usuario_id_seq', (SELECT MAX(id) FROM usuario));
 
 -- ----------------------------------------------------------------------------
