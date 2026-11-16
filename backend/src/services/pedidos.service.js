@@ -7,7 +7,7 @@ import { ErroApi } from "../middlewares/erros.js";
 import { paraPedido } from "../utils/mapeadores/pedido.js";
 import { criarPedidoSeguro } from "./checkout-seguro.service.js";
 import { criarPedidoIngenuo } from "./checkout-ingenuo.service.js";
-import { ProdutoInexistente } from "../repositories/pedido.repository.js";
+import { ProdutoInexistente } from "../utils/erros-checkout.js";
 import * as pedidosRepository from "../repositories/pedidos.repository.js";
 import * as produtosRepository from "../repositories/produtos.repository.js";
 import * as carrinhoRepository from "../repositories/carrinho.repository.js";

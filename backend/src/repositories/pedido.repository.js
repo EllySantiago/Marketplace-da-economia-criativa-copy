@@ -8,24 +8,7 @@
 // ============================================================================
 
 import { enfileirar } from "./fila.repository.js";
-
-/** Não havia estoque suficiente no momento da compra. Vira HTTP 409 Conflict. */
-export class EstoqueInsuficiente extends Error {
-  constructor(produtoId) {
-    super(`Estoque insuficiente para o produto ${produtoId}.`);
-    this.name = "EstoqueInsuficiente";
-    this.produtoId = produtoId;
-  }
-}
-
-/** O produto não existe ou está inativo. Vira HTTP 404 Not Found. */
-export class ProdutoInexistente extends Error {
-  constructor(produtoId) {
-    super(`Produto ${produtoId} não encontrado ou inativo.`);
-    this.name = "ProdutoInexistente";
-    this.produtoId = produtoId;
-  }
-}
+import { EstoqueInsuficiente, ProdutoInexistente } from "../utils/erros-checkout.js";
 
 const SUBTOTAL_PARA_FRETE_GRATIS = 400;
 const VALOR_FRETE = 35.9;
