@@ -5,7 +5,7 @@
 // ============================================================================
 
 import { pool, comTransacao } from "../config/database.js";
-import { ProdutoInexistente } from "./pedido.repository.js";
+import { ProdutoInexistente } from "../utils/erros-checkout.js";
 import { enfileirar, resumo } from "./fila.repository.js";
 
 /** O banco está de pé? */

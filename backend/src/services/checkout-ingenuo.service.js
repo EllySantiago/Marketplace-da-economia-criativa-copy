@@ -20,7 +20,8 @@
 // ============================================================================
 
 import { comTransacao } from "../config/database.js";
-import { EstoqueInsuficiente, ProdutoInexistente, gravarPedido } from "../repositories/pedido.repository.js";
+import { gravarPedido } from "../repositories/pedido.repository.js";
+import { EstoqueInsuficiente, ProdutoInexistente } from "../utils/erros-checkout.js";
 
 export async function criarPedidoIngenuo({ compradorId, enderecoEntrega, metodoPagamento, itens }) {
   // Sem ordenação por id — de propósito. Além da race condition de estoque,
