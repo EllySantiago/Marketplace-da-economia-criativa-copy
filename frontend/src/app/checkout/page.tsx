@@ -56,7 +56,7 @@ export default function CheckoutPage() {
     <PublicLayout>
       <main className="mx-auto max-w-[1000px] px-6 py-12 md:px-12">
         <p className="section-label">Checkout</p>
-        <h1 className="mt-2 font-display text-4xl text-[#2C2C2C]">Confirmar pedido</h1>
+        <h1 className="mt-2 font-display text-4xl text-charcoal">Confirmar pedido</h1>
 
         {itens.length === 0 ? (
           <div className="mt-10">
@@ -73,17 +73,17 @@ export default function CheckoutPage() {
               <Input label="Endereço de entrega" required placeholder="Rua, número — bairro, cidade/UF — CEP" value={endereco} onChange={(e) => setEndereco(e.target.value)} />
 
               <div>
-                <p className="mb-2 text-sm font-medium text-[#2C2C2C]">Forma de pagamento</p>
+                <p className="mb-2 text-sm font-medium text-charcoal">Forma de pagamento</p>
                 <div className="grid grid-cols-3 gap-3">
                   {METODOS_PAGAMENTO.map((opcao) => (
                     <button
                       key={opcao.id}
                       type="button"
                       onClick={() => setMetodoPagamento(opcao.id)}
-                      className={`flex flex-col items-center gap-1.5 rounded border p-3 text-center ${metodoPagamento === opcao.id ? "border-2 border-[#C1522A] bg-[#FFF7F4]" : "border-[#E8E0D5] bg-white"}`}
+                      className={`flex flex-col items-center gap-1.5 rounded border p-3 text-center ${metodoPagamento === opcao.id ? "border-2 border-terracotta bg-[#FFF7F4]" : "border-beige-dark bg-white"}`}
                     >
                       <span className="text-xl">{opcao.icone}</span>
-                      <span className={`text-xs font-bold ${metodoPagamento === opcao.id ? "text-[#C1522A]" : "text-[#555]"}`}>{opcao.label}</span>
+                      <span className={`text-xs font-bold ${metodoPagamento === opcao.id ? "text-terracotta" : "text-[#555]"}`}>{opcao.label}</span>
                     </button>
                   ))}
                 </div>
@@ -102,9 +102,9 @@ export default function CheckoutPage() {
               </Button>
             </form>
 
-            <aside className="h-fit border border-[#E8E0D5] bg-white p-6">
+            <aside className="h-fit border border-beige-dark bg-white p-6">
               <h2 className="font-display text-xl">Resumo</h2>
-              <ul className="mt-4 space-y-3 border-b border-[#E8E0D5] pb-4">
+              <ul className="mt-4 space-y-3 border-b border-beige-dark pb-4">
                 {itens.map((item) => (
                   <li key={item.produto.id} className="flex items-center gap-3 text-sm">
                     <img src={item.produto.imagem} alt="" className="h-12 w-12 shrink-0 object-cover" />
@@ -125,9 +125,9 @@ export default function CheckoutPage() {
                   <span>Frete</span>
                   <span>{frete ? formatCurrency(frete) : "Grátis"}</span>
                 </div>
-                <div className="flex justify-between border-t border-[#E8E0D5] pt-2 font-semibold text-[#2C2C2C]">
+                <div className="flex justify-between border-t border-beige-dark pt-2 font-semibold text-charcoal">
                   <span>Total</span>
-                  <span className="text-[#C1522A]">{formatCurrency(total)}</span>
+                  <span className="text-terracotta">{formatCurrency(total)}</span>
                 </div>
               </div>
             </aside>

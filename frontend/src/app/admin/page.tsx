@@ -27,7 +27,7 @@ function MetricCard({ label, valor }: { label: string; valor: string }) {
   return (
     <div className="metric-card">
       <p className="text-xs uppercase tracking-[.08em] text-[#888]">{label}</p>
-      <p className="font-display mt-2 text-2xl text-[#2C2C2C]">{valor}</p>
+      <p className="font-display mt-2 text-2xl text-charcoal">{valor}</p>
     </div>
   );
 }
@@ -63,7 +63,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#F5F0EB]">
+    <div className="flex min-h-screen bg-beige">
       <Sidebar
         titulo="Painel Administrativo"
         subtitulo={usuario.nome}
@@ -92,7 +92,7 @@ export default function AdminPage() {
             </div>
 
             <div className="mt-10 bg-white">
-              <div className="flex items-center justify-between border-b border-[#E8E0D5] px-6 py-5">
+              <div className="flex items-center justify-between border-b border-beige-dark px-6 py-5">
                 <h2 className="font-display text-lg">Aprovações pendentes</h2>
                 {pendentes.length > 0 && (
                   <span className="rounded-full bg-[#fee2e2] px-3 py-1 text-xs font-bold text-[#dc2626]">{pendentes.length} pendente{pendentes.length > 1 ? "s" : ""}</span>
@@ -106,14 +106,14 @@ export default function AdminPage() {
                 pendentes.map((pendente) => (
                   <div key={pendente.id} className="flex flex-wrap items-center justify-between gap-4 border-b border-[#F0EAE2] px-6 py-4 last:border-none">
                     <div className="flex items-center gap-4">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F5F0EB] text-xl">🧑‍🎨</span>
+                      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-beige text-xl">🧑‍🎨</span>
                       <div>
-                        <p className="text-[.9375rem] font-semibold text-[#2C2C2C]">{pendente.nome}</p>
+                        <p className="text-[.9375rem] font-semibold text-charcoal">{pendente.nome}</p>
                         <p className="text-[.8125rem] text-[#888]">Cadastro recebido — aguardando dados completos do ateliê</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <button type="button" onClick={() => aprovar(pendente.id)} className="rounded-sm bg-[#1B4332] px-3.5 py-1.5 text-xs font-bold text-white">
+                      <button type="button" onClick={() => aprovar(pendente.id)} className="rounded-sm bg-green px-3.5 py-1.5 text-xs font-bold text-white">
                         Aprovar
                       </button>
                       <button type="button" onClick={() => rejeitar(pendente.id)} className="rounded-sm border border-[#fee2e2] bg-[#FFF5F5] px-3.5 py-1.5 text-xs font-bold text-[#dc2626]">
@@ -149,7 +149,7 @@ export default function AdminPage() {
                     {artesoes.map((artesao) => (
                       <tr key={artesao.id} className="table-row">
                         <td>
-                          <Link href={ROTAS.artesao(artesao.id)} className="flex items-center gap-3 hover:text-[#C1522A]">
+                          <Link href={ROTAS.artesao(artesao.id)} className="flex items-center gap-3 hover:text-terracotta">
                             <img src={artesao.fotoUrl} alt="" className="h-9 w-9 rounded-full object-cover" />
                             <span>
                               {artesao.nome}
@@ -162,7 +162,7 @@ export default function AdminPage() {
                         <td>{artesao.totalProdutos}</td>
                         <td>★ {artesao.avaliacaoMedia}</td>
                         <td>
-                          <span className="rounded-sm bg-[#D8F3DC] px-2 py-1 text-xs font-bold text-[#1B4332]">Ativo</span>
+                          <span className="rounded-sm bg-[#D8F3DC] px-2 py-1 text-xs font-bold text-green">Ativo</span>
                         </td>
                       </tr>
                     ))}

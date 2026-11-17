@@ -16,7 +16,7 @@ export default function ProductList({ produtos, titulo = "Escolhas da semana", d
       <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="section-label">Peças com origem</p>
-          <h2 id={id} className="mt-2 font-display text-4xl text-[#2C2C2C]">
+          <h2 id={id} className="mt-2 font-display text-4xl text-charcoal">
             {titulo}
           </h2>
         </div>

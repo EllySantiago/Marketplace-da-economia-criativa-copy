@@ -12,7 +12,7 @@ export default function CartView() {
 
   return (
     <main className="mx-auto max-w-[1200px] px-6 py-12 md:px-12">
-      <Link href={ROTAS.produtos} className="text-sm text-[#888] hover:text-[#C1522A]">
+      <Link href={ROTAS.produtos} className="text-sm text-[#888] hover:text-terracotta">
         ← Continuar comprando
       </Link>
       <p className="section-label mt-10">Meu carrinho</p>

@@ -27,8 +27,8 @@ export default function ProductPurchase({ produto }: { produto: Produto }) {
   return (
     <div className="mt-8">
       <div className="flex items-center gap-4">
-        <div className="flex items-center border border-[#E8E0D5]">
-          <button type="button" aria-label="Diminuir quantidade" onClick={() => setQuantidade((atual) => Math.max(1, atual - 1))} className="h-11 w-10 bg-[#F5F0EB] text-lg text-[#555]">
+        <div className="flex items-center border border-beige-dark">
+          <button type="button" aria-label="Diminuir quantidade" onClick={() => setQuantidade((atual) => Math.max(1, atual - 1))} className="h-11 w-10 bg-beige text-lg text-[#555]">
             −
           </button>
           <span className="flex h-11 w-12 items-center justify-center font-semibold">{quantidade}</span>
@@ -36,7 +36,7 @@ export default function ProductPurchase({ produto }: { produto: Produto }) {
             type="button"
             aria-label="Aumentar quantidade"
             onClick={() => setQuantidade((atual) => Math.min(produto.estoque, atual + 1))}
-            className="h-11 w-10 bg-[#F5F0EB] text-lg text-[#555]"
+            className="h-11 w-10 bg-beige text-lg text-[#555]"
           >
             +
           </button>
@@ -45,7 +45,7 @@ export default function ProductPurchase({ produto }: { produto: Produto }) {
           type="button"
           onClick={handleAdicionar}
           disabled={esgotado}
-          className={`flex-1 py-3.5 text-sm font-bold uppercase tracking-[.06em] text-white disabled:cursor-not-allowed disabled:opacity-50 ${adicionado ? "bg-[#2D6A4F]" : "bg-[#C1522A]"}`}
+          className={`flex-1 py-3.5 text-sm font-bold uppercase tracking-[.06em] text-white disabled:cursor-not-allowed disabled:opacity-50 ${adicionado ? "bg-[#2D6A4F]" : "bg-terracotta"}`}
         >
           {esgotado ? "Esgotado" : adicionado ? "✓ Adicionado ao Carrinho" : "Adicionar ao Carrinho"}
         </button>
@@ -55,7 +55,7 @@ export default function ProductPurchase({ produto }: { produto: Produto }) {
         type="button"
         onClick={handleComprarAgora}
         disabled={esgotado}
-        className="mt-3 w-full bg-[#1B4332] py-3.5 text-sm font-bold uppercase tracking-[.06em] text-white disabled:cursor-not-allowed disabled:opacity-50"
+        className="mt-3 w-full bg-green py-3.5 text-sm font-bold uppercase tracking-[.06em] text-white disabled:cursor-not-allowed disabled:opacity-50"
       >
         Comprar Agora
       </button>

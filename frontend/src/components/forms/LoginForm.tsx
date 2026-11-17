@@ -36,7 +36,7 @@ export default function LoginForm() {
           <label htmlFor="login-senha" className="text-sm font-semibold text-[#555]">
             Senha
           </label>
-          <button type="button" className="text-[.8rem] font-semibold text-[#C1522A]">
+          <button type="button" className="text-[.8rem] font-semibold text-terracotta">
             Esqueci minha senha
           </button>
         </div>
@@ -49,7 +49,7 @@ export default function LoginForm() {
             onChange={(e) => setSenha(e.target.value)}
             autoComplete="current-password"
             placeholder="••••••••"
-            className="w-full border border-[#E8E0D5] bg-white py-3 pl-4 pr-11 text-[.9375rem]"
+            className="w-full border border-beige-dark bg-white py-3 pl-4 pr-11 text-[.9375rem]"
           />
           <button type="button" onClick={() => setMostrarSenha((atual) => !atual)} aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#aaa]">
             {mostrarSenha ? "🙈" : "👁"}

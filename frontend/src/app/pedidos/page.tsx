@@ -33,7 +33,7 @@ export default function PedidosPage() {
     <PublicLayout>
       <main className="mx-auto max-w-[900px] px-6 py-12 md:px-12">
         <p className="section-label">Minha conta</p>
-        <h1 className="mt-2 font-display text-4xl text-[#2C2C2C]">Meus pedidos</h1>
+        <h1 className="mt-2 font-display text-4xl text-charcoal">Meus pedidos</h1>
         <div className="mt-8">
           {estaAutenticado && usuario ? <ListaDePedidos email={usuario.email} /> : <EmptyState titulo="Entre para ver seus pedidos" acaoHref={ROTAS.login} acaoLabel="Entrar" />}
         </div>

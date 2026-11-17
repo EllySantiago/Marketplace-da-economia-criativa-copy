@@ -49,13 +49,13 @@ export default function ProductDetails({ produtoId }: { produtoId: number }) {
 
   return (
     <div className="bg-[#FBF8F4]">
-      <div className="border-b border-[#E8E0D5] bg-white">
+      <div className="border-b border-beige-dark bg-white">
         <div className="mx-auto max-w-[1440px] px-6 py-4 text-sm text-[#888]">
-          <Link href={ROTAS.home} className="hover:text-[#C1522A]">
+          <Link href={ROTAS.home} className="hover:text-terracotta">
             Início
           </Link>{" "}
           ›{" "}
-          <Link href={ROTAS.produtos} className="hover:text-[#C1522A]">
+          <Link href={ROTAS.produtos} className="hover:text-terracotta">
             Catálogo
           </Link>{" "}
           › {produto.nome.length > 40 ? `${produto.nome.slice(0, 40)}…` : produto.nome}
@@ -64,7 +64,7 @@ export default function ProductDetails({ produtoId }: { produtoId: number }) {
 
       <div className="mx-auto grid max-w-[1440px] gap-16 px-6 py-12 md:grid-cols-2">
         <div>
-          <div className="h-[520px] overflow-hidden bg-[#F5F0EB]">
+          <div className="h-[520px] overflow-hidden bg-beige">
             <img src={produto.imagens[imagemSelecionada] ?? produto.imagem} alt={produto.nome} className="h-full w-full object-cover" />
           </div>
           {produto.imagens.length > 1 && (
@@ -74,7 +74,7 @@ export default function ProductDetails({ produtoId }: { produtoId: number }) {
                   key={imagem}
                   type="button"
                   onClick={() => setImagemSelecionada(indice)}
-                  className={`h-20 w-20 overflow-hidden border-2 ${indice === imagemSelecionada ? "border-[#C1522A]" : "border-transparent"}`}
+                  className={`h-20 w-20 overflow-hidden border-2 ${indice === imagemSelecionada ? "border-terracotta" : "border-transparent"}`}
                 >
                   <img src={imagem} alt="" className="h-full w-full object-cover" />
                 </button>
@@ -88,16 +88,16 @@ export default function ProductDetails({ produtoId }: { produtoId: number }) {
             <Badge>{produto.tecnica}</Badge>
             <span className="text-xs text-[#888]">{produto.regiao}</span>
           </div>
-          <h1 className="font-display mt-3 text-4xl text-[#2C2C2C]">{produto.nome}</h1>
+          <h1 className="font-display mt-3 text-4xl text-charcoal">{produto.nome}</h1>
           {artesao && (
-            <Link href={ROTAS.artesao(artesao.id)} className="mt-3 flex items-center gap-2 text-sm font-semibold text-[#C1522A]">
+            <Link href={ROTAS.artesao(artesao.id)} className="mt-3 flex items-center gap-2 text-sm font-semibold text-terracotta">
               <img src={artesao.fotoUrl} alt="" className="h-8 w-8 rounded-full object-cover" />
               Criado por {artesao.nome}
             </Link>
           )}
           <p className="mt-5 leading-7 text-[#555]">{produto.descricao}</p>
 
-          <dl className="mt-6 grid grid-cols-2 gap-4 bg-[#F5F0EB] p-5 text-sm">
+          <dl className="mt-6 grid grid-cols-2 gap-4 bg-beige p-5 text-sm">
             <div>
               <dt className="text-xs uppercase tracking-[.08em] text-[#888]">Técnica</dt>
               <dd className="mt-1 font-medium">{produto.tecnica}</dd>
@@ -117,7 +117,7 @@ export default function ProductDetails({ produtoId }: { produtoId: number }) {
           </dl>
 
           <div className="mt-6 flex items-baseline gap-3">
-            <p className="font-display text-3xl font-semibold text-[#C1522A]">{formatCurrency(produto.preco)}</p>
+            <p className="font-display text-3xl font-semibold text-terracotta">{formatCurrency(produto.preco)}</p>
             {produto.precoOriginal && <p className="text-base text-[#aaa] line-through">{formatCurrency(produto.precoOriginal)}</p>}
           </div>
 
@@ -127,10 +127,10 @@ export default function ProductDetails({ produtoId }: { produtoId: number }) {
 
       {artesao && (
         <div className="mx-auto max-w-[1440px] px-6 pb-12">
-          <div className="grid gap-6 bg-[#1B4332] p-8 md:grid-cols-[auto_1fr]">
+          <div className="grid gap-6 bg-green p-8 md:grid-cols-[auto_1fr]">
             <img src={artesao.fotoUrl} alt={artesao.nome} className="h-24 w-24 rounded-full object-cover" />
             <div>
-              <p className="section-label text-[#C1522A]">Sobre o artesão</p>
+              <p className="section-label text-terracotta">Sobre o artesão</p>
               <h2 className="font-display mt-1 text-2xl text-white">{artesao.nome}</h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-white/70">{artesao.biografia}</p>
               <div className="mt-3 flex flex-wrap gap-2">
