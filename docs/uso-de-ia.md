@@ -68,7 +68,19 @@ ao módulo em `frontend/src/services/api/recomendacoes.service.ts` e a documenta
 A inclusão do RF-06 (histórico de compra) e a integração com o frontend foram decisões da
 equipe; os casos de teste foram executados e conferidos antes da entrega.
 
-## 5. Outras ferramentas
+## 5. Claude Code — backend real da Unidade 2
+
+Na U2, o backend (`backend/`) foi evoluído para a API REST real do marketplace com o
+**Claude Code**, etapa por etapa, seguindo [`plano-u2.md`](plano-u2.md): contrato da API
+([`api.md`](api.md)), migração para o Prisma e para as camadas routes/controllers/services/repositories,
+sessão por cookie httpOnly, carrinho salvo no banco, pedidos com o checkout seguro da U1, painel do
+artesão e cache da vitrine. A IA escreveu o código e os testes automatizados (`backend/testes/api/`,
+com `node:test` e `supertest`), conferiu cada teste por sabotagem (alterar o código de propósito para
+ver o teste falhar), reexecutou a bateria do FCCPD U1 a cada etapa e redigiu os relatórios das etapas
+e as atualizações do Plano de Testes. A ordem das etapas, as escolhas de stack (Prisma, cookie,
+carrinho no banco, cache em memória) e o merge de cada pull request foram decisões da equipe.
+
+## 6. Outras ferramentas
 
 **ChatGPT, Gemini e GitHub Copilot** foram utilizados na entrega de FCCPD como apoio de
 **estudo**, para esclarecer conceitos da disciplina (race condition, lock, thread × processo,
@@ -77,7 +89,7 @@ fila, idempotência). Conforme declarado pela aluna, não geraram código entreg
 *(Espaço para a equipe registrar outros usos — indicando ferramenta, trecho do projeto em que
 foi usada e o que foi gerado por IA vs. revisado/ajustado pela equipe.)*
 
-## 6. Responsabilidade final
+## 7. Responsabilidade final
 
 Conforme orientação da disciplina, o uso de IA generativa foi tratado como apoio ao
 desenvolvimento, não como substituto do entendimento do time sobre a solução: a equipe é
