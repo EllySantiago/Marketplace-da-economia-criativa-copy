@@ -34,7 +34,7 @@ function CampoSenha({ id, label, valor, onChange }: { id: string; label: string;
           onChange={(e) => onChange(e.target.value)}
           autoComplete="new-password"
           placeholder="••••••••"
-          className="w-full border border-[#E8E0D5] bg-white py-3 pl-4 pr-11 text-[.9375rem]"
+          className="w-full border border-beige-dark bg-white py-3 pl-4 pr-11 text-[.9375rem]"
         />
         <button type="button" onClick={() => setVisivel((atual) => !atual)} aria-label={visivel ? "Ocultar senha" : "Mostrar senha"} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#aaa]">
           {visivel ? "🙈" : "👁"}
@@ -76,10 +76,10 @@ export default function RegisterForm() {
               key={opcao.id}
               type="button"
               onClick={() => setPerfil(opcao.id)}
-              className={`flex flex-col items-center gap-1.5 rounded border p-3.5 ${perfil === opcao.id ? "border-2 border-[#C1522A] bg-[#FFF7F4]" : "border-[#E8E0D5] bg-white"}`}
+              className={`flex flex-col items-center gap-1.5 rounded border p-3.5 ${perfil === opcao.id ? "border-2 border-terracotta bg-[#FFF7F4]" : "border-beige-dark bg-white"}`}
             >
               <span className="text-[1.375rem]">{opcao.icone}</span>
-              <span className={`text-xs font-bold ${perfil === opcao.id ? "text-[#C1522A]" : "text-[#555]"}`}>{opcao.label}</span>
+              <span className={`text-xs font-bold ${perfil === opcao.id ? "text-terracotta" : "text-[#555]"}`}>{opcao.label}</span>
             </button>
           ))}
         </div>
@@ -92,16 +92,16 @@ export default function RegisterForm() {
       <CampoSenha id="cadastro-confirmar" label="Confirmar senha" valor={confirmarSenha} onChange={setConfirmarSenha} />
 
       {perfil === "artesao" && (
-        <div className="flex gap-3 border border-[#E8E0D5] bg-[#F5F0EB] p-4 text-[.8125rem] leading-[1.6] text-[#555]">
+        <div className="flex gap-3 border border-beige-dark bg-beige p-4 text-[.8125rem] leading-[1.6] text-[#555]">
           <span className="shrink-0 text-lg">📋</span>
           <p>Cadastros de artesão passam por revisão da administração do Origem antes de aparecerem na vitrine pública — normalmente em até 48 horas.</p>
         </div>
       )}
 
       <label className="flex cursor-pointer items-start gap-2.5">
-        <input type="checkbox" required checked={aceiteTermos} onChange={(e) => setAceiteTermos(e.target.checked)} className="mt-0.5 shrink-0 accent-[#C1522A]" />
+        <input type="checkbox" required checked={aceiteTermos} onChange={(e) => setAceiteTermos(e.target.checked)} className="mt-0.5 shrink-0 accent-terracotta" />
         <span className="text-[.8125rem] leading-[1.6] text-[#555]">
-          Concordo com os <span className="font-semibold text-[#C1522A]">Termos de Uso</span> e a <span className="font-semibold text-[#C1522A]">Política de Privacidade</span> do Origem.
+          Concordo com os <span className="font-semibold text-terracotta">Termos de Uso</span> e a <span className="font-semibold text-terracotta">Política de Privacidade</span> do Origem.
         </span>
       </label>
 

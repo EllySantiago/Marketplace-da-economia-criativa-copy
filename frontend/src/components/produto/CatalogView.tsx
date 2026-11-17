@@ -35,14 +35,14 @@ export default function CatalogView() {
       <div className="mb-10 flex flex-wrap items-end justify-between gap-5">
         <div>
           <p className="section-label">Catálogo</p>
-          <h1 className="mt-2 font-display text-5xl text-[#2C2C2C]">Peças com história</h1>
+          <h1 className="mt-2 font-display text-5xl text-charcoal">Peças com história</h1>
           <p className="mt-3 text-sm text-[#888]">{carregando ? "Buscando peças..." : `${resultado.length} peças encontradas`}</p>
         </div>
         <div className="flex items-center gap-3">
           <button type="button" onClick={() => setFiltrosAbertos(true)} className="btn-outline show-mobile">
             Filtros
           </button>
-          <select aria-label="Ordenar produtos" value={ordem} onChange={(event) => setOrdem(event.target.value as typeof ordem)} className="border border-[#E8E0D5] bg-white px-4 py-3 text-sm">
+          <select aria-label="Ordenar produtos" value={ordem} onChange={(event) => setOrdem(event.target.value as typeof ordem)} className="border border-beige-dark bg-white px-4 py-3 text-sm">
             <option value="destaque">Destaque</option>
             <option value="menor-preco">Menor preço</option>
             <option value="maior-preco">Maior preço</option>

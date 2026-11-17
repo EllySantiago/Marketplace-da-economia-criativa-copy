@@ -26,7 +26,7 @@ export default function ProductFilters({ valores, onAlterar }: ProductFiltersPro
           value={valores.busca}
           onChange={(evento) => onAlterar({ ...valores, busca: evento.target.value })}
           placeholder="Nome, técnica ou artesão"
-          className="mt-3 w-full border border-[#E8E0D5] bg-white px-3 py-2 text-sm"
+          className="mt-3 w-full border border-beige-dark bg-white px-3 py-2 text-sm"
         />
       </label>
       <label className="block text-xs font-bold uppercase tracking-[.12em] text-[#888]">
@@ -34,7 +34,7 @@ export default function ProductFilters({ valores, onAlterar }: ProductFiltersPro
         <select
           value={valores.regiao}
           onChange={(evento) => onAlterar({ ...valores, regiao: evento.target.value })}
-          className="mt-3 w-full border border-[#E8E0D5] bg-white px-3 py-2 text-sm"
+          className="mt-3 w-full border border-beige-dark bg-white px-3 py-2 text-sm"
         >
           <option>{TODAS}</option>
           {REGIOES.map((regiao) => (
@@ -47,7 +47,7 @@ export default function ProductFilters({ valores, onAlterar }: ProductFiltersPro
         <select
           value={valores.categoria}
           onChange={(evento) => onAlterar({ ...valores, categoria: evento.target.value })}
-          className="mt-3 w-full border border-[#E8E0D5] bg-white px-3 py-2 text-sm"
+          className="mt-3 w-full border border-beige-dark bg-white px-3 py-2 text-sm"
         >
           <option>{TODAS}</option>
           {CATEGORIAS.map((categoria) => (
@@ -64,14 +64,14 @@ export default function ProductFilters({ valores, onAlterar }: ProductFiltersPro
           step={50}
           value={valores.precoMax}
           onChange={(evento) => onAlterar({ ...valores, precoMax: Number(evento.target.value) })}
-          className="mt-3 w-full accent-[#C1522A]"
+          className="mt-3 w-full accent-terracotta"
         />
       </label>
       <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-[.12em] text-[#888]">
-        <input type="checkbox" checked={valores.somenteEstoque} onChange={(evento) => onAlterar({ ...valores, somenteEstoque: evento.target.checked })} className="accent-[#C1522A]" />
+        <input type="checkbox" checked={valores.somenteEstoque} onChange={(evento) => onAlterar({ ...valores, somenteEstoque: evento.target.checked })} className="accent-terracotta" />
         Somente em estoque
       </label>
-      <button type="button" onClick={() => onAlterar(FILTRO_PADRAO)} className="text-xs font-semibold uppercase tracking-[.08em] text-[#C1522A] hover:underline">
+      <button type="button" onClick={() => onAlterar(FILTRO_PADRAO)} className="text-xs font-semibold uppercase tracking-[.08em] text-terracotta hover:underline">
         Limpar filtros
       </button>
     </aside>

@@ -15,7 +15,7 @@ const navLinks = [
 
 function BrandMark() {
   return (
-    <span className="flex h-8 w-8 items-center justify-center rounded-[2px] bg-[#C1522A]" aria-hidden="true">
+    <span className="flex h-8 w-8 items-center justify-center rounded-[2px] bg-terracotta" aria-hidden="true">
       <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
         <circle cx="9" cy="9" r="7" stroke="white" strokeWidth="1.5" />
         <path d="M9 5v4l3 2" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
@@ -67,11 +67,11 @@ export default function Header() {
   const destinoConta = usuario ? (usuario.perfil === "artesao" ? ROTAS.painelArtesao : usuario.perfil === "administrador" ? ROTAS.admin : ROTAS.pedidos) : ROTAS.login;
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[#E8E0D5] bg-[#FBF8F4]">
+    <header className="sticky top-0 z-50 border-b border-beige-dark bg-[#FBF8F4]">
       <div className="mx-auto flex h-[68px] max-w-[1440px] items-center gap-6 px-6">
         <Link href={ROTAS.home} className="flex shrink-0 items-center gap-2">
           <BrandMark />
-          <span className="font-display text-xl font-semibold tracking-[-.02em] text-[#2C2C2C]">Origem</span>
+          <span className="font-display text-xl font-semibold tracking-[-.02em] text-charcoal">Origem</span>
         </Link>
         <form onSubmit={buscar} className="hide-mobile max-w-md flex-1">
           <label className="relative block">
@@ -83,7 +83,7 @@ export default function Header() {
               value={busca}
               onChange={(event) => setBusca(event.target.value)}
               placeholder="Buscar peças, artesãos, técnicas..."
-              className="w-full border border-[#E8E0D5] bg-[#F5F0EB] py-2 pl-9 pr-4 text-sm text-[#2C2C2C]"
+              className="w-full border border-beige-dark bg-beige py-2 pl-9 pr-4 text-sm text-charcoal"
             />
           </label>
         </form>
@@ -95,25 +95,25 @@ export default function Header() {
           ))}
         </nav>
         <div className="ml-auto flex items-center gap-3">
-          <Link href={ROTAS.carrinho} aria-label="Abrir carrinho" className="relative flex h-10 w-10 items-center justify-center text-[#2C2C2C]">
+          <Link href={ROTAS.carrinho} aria-label="Abrir carrinho" className="relative flex h-10 w-10 items-center justify-center text-charcoal">
             <CartIcon />
             {quantidadeTotal > 0 && (
-              <span className="absolute right-0 top-0 flex h-4 w-4 items-center justify-center rounded-full bg-[#C1522A] text-[10px] font-bold text-white">
+              <span className="absolute right-0 top-0 flex h-4 w-4 items-center justify-center rounded-full bg-terracotta text-[10px] font-bold text-white">
                 {quantidadeTotal}
               </span>
             )}
           </Link>
           {usuario ? (
             <div className="hide-mobile flex items-center gap-2">
-              <Link href={destinoConta} className="flex items-center gap-2 rounded-[2px] bg-[#1B4332] px-4 py-2 text-[.8125rem] font-semibold text-white">
+              <Link href={destinoConta} className="flex items-center gap-2 rounded-[2px] bg-green px-4 py-2 text-[.8125rem] font-semibold text-white">
                 {usuario.nome.split(" ")[0]}
               </Link>
-              <button type="button" onClick={sairEVoltarParaHome} className="rounded-[2px] border border-[#E8E0D5] px-3 py-2 text-[.8125rem] font-semibold text-[#555] hover:border-[#C1522A] hover:text-[#C1522A]">
+              <button type="button" onClick={sairEVoltarParaHome} className="rounded-[2px] border border-beige-dark px-3 py-2 text-[.8125rem] font-semibold text-[#555] hover:border-terracotta hover:text-terracotta">
                 Sair
               </button>
             </div>
           ) : (
-            <Link href={ROTAS.login} className="hide-mobile flex items-center gap-2 rounded-[2px] bg-[#1B4332] px-4 py-2 text-[.8125rem] font-semibold text-white">
+            <Link href={ROTAS.login} className="hide-mobile flex items-center gap-2 rounded-[2px] bg-green px-4 py-2 text-[.8125rem] font-semibold text-white">
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                 <circle cx="7" cy="5" r="3" stroke="white" strokeWidth="1.4" />
                 <path d="M1 13c0-3 2.5-5 6-5s6 2 6 5" stroke="white" strokeWidth="1.4" strokeLinecap="round" />
@@ -129,23 +129,23 @@ export default function Header() {
         </div>
       </div>
       {menuOpen && (
-        <div className="show-mobile border-t border-[#E8E0D5] bg-[#FBF8F4] px-6 py-4">
+        <div className="show-mobile border-t border-beige-dark bg-[#FBF8F4] px-6 py-4">
           <form onSubmit={buscar}>
             <input
               value={busca}
               onChange={(event) => setBusca(event.target.value)}
               placeholder="Buscar..."
-              className="mb-3 w-full border border-[#E8E0D5] bg-[#F5F0EB] px-4 py-2 text-sm"
+              className="mb-3 w-full border border-beige-dark bg-beige px-4 py-2 text-sm"
             />
           </form>
           <nav className="flex flex-col gap-4">
             {[...navLinks, { label: usuario ? usuario.nome.split(" ")[0] : "Entrar", href: destinoConta }].map((link) => (
-              <Link key={link.href} href={link.href} onClick={() => setMenuOpen(false)} className="border-b border-[#E8E0D5] py-2 text-sm font-medium text-[#2C2C2C]">
+              <Link key={link.href} href={link.href} onClick={() => setMenuOpen(false)} className="border-b border-beige-dark py-2 text-sm font-medium text-charcoal">
                 {link.label}
               </Link>
             ))}
             {usuario && (
-              <button type="button" onClick={sairEVoltarParaHome} className="py-2 text-left text-sm font-semibold text-[#C1522A]">
+              <button type="button" onClick={sairEVoltarParaHome} className="py-2 text-left text-sm font-semibold text-terracotta">
                 Sair
               </button>
             )}

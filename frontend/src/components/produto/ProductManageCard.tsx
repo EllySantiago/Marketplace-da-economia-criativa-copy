@@ -21,13 +21,13 @@ export default function ProductManageCard({ produto, onEditar, onRemover, remove
         <Badge>{produto.tecnica}</Badge>
         <h4 className="font-display mt-2 text-[.9375rem] font-medium leading-[1.4]">{produto.nome}</h4>
         <div className="mt-3 flex items-center justify-between">
-          <span className="font-display text-base font-bold text-[#C1522A]">{formatCurrency(produto.preco)}</span>
+          <span className="font-display text-base font-bold text-terracotta">{formatCurrency(produto.preco)}</span>
           <span className={`text-xs font-semibold ${produto.estoque > 2 ? "text-[#2D6A4F]" : produto.estoque > 0 ? "text-[#92400E]" : "text-[#dc2626]"}`}>
             {produto.estoque > 0 ? `${produto.estoque} em estoque` : "Esgotado"}
           </span>
         </div>
         <div className="mt-3 flex gap-2">
-          <button type="button" onClick={() => onEditar(produto)} className="flex-1 border border-[#E8E0D5] bg-white py-1.5 text-xs font-semibold text-[#555]">
+          <button type="button" onClick={() => onEditar(produto)} className="flex-1 border border-beige-dark bg-white py-1.5 text-xs font-semibold text-[#555]">
             Editar
           </button>
           <button

@@ -45,22 +45,22 @@ export default function OrderConfirmation() {
   return (
     <div className="mx-auto max-w-[760px] px-6 py-16">
       <div className="text-center">
-        <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#D8F3DC] text-3xl text-[#1B4332]" aria-hidden="true">
+        <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#D8F3DC] text-3xl text-green" aria-hidden="true">
           ✓
         </span>
         <p className="section-label mt-5">Pedido realizado com sucesso</p>
-        <h1 className="font-display mt-2 text-3xl text-[#2C2C2C]">Pedido {pedido.codigo} confirmado!</h1>
+        <h1 className="font-display mt-2 text-3xl text-charcoal">Pedido {pedido.codigo} confirmado!</h1>
         <p className="mt-2 text-sm text-[#888]">Enviamos os detalhes para {pedido.clienteEmail}.</p>
       </div>
 
-      <div className="mt-10 bg-[#1B4332] p-6 text-white">
-        <p className="section-label text-[#C1522A]">Prazo de entrega — Pernambuco</p>
+      <div className="mt-10 bg-green p-6 text-white">
+        <p className="section-label text-terracotta">Prazo de entrega — Pernambuco</p>
         <p className="mt-1 text-sm text-white/70">Previsão: {formatDate(pedido.previsaoEntrega)}</p>
         <div className="mt-6 flex justify-between gap-2">
           {ETAPAS.map((etapa, indice) => (
             <div key={etapa.chave} className="flex-1 text-center">
               <span
-                className={`mx-auto mb-2 flex h-6 w-6 items-center justify-center rounded-full text-xs ${indice <= indiceEtapaAtual ? "bg-[#C1522A] text-white" : "bg-white/20 text-white/50"}`}
+                className={`mx-auto mb-2 flex h-6 w-6 items-center justify-center rounded-full text-xs ${indice <= indiceEtapaAtual ? "bg-terracotta text-white" : "bg-white/20 text-white/50"}`}
               >
                 {indice <= indiceEtapaAtual ? "✓" : indice + 1}
               </span>
@@ -72,7 +72,7 @@ export default function OrderConfirmation() {
 
       <div className="card mt-8 p-6">
         <h2 className="font-display text-xl">Resumo do pedido</h2>
-        <ul className="mt-4 space-y-3 border-b border-[#E8E0D5] pb-4">
+        <ul className="mt-4 space-y-3 border-b border-beige-dark pb-4">
           {pedido.itens.map((item) => (
             <li key={item.produto.id} className="flex items-center gap-3 text-sm">
               <img src={item.produto.imagem} alt="" className="h-14 w-14 shrink-0 object-cover" />
@@ -96,14 +96,14 @@ export default function OrderConfirmation() {
             <span>Frete</span>
             <span>{pedido.frete ? formatCurrency(pedido.frete) : "Grátis"}</span>
           </div>
-          <div className="flex justify-between font-semibold text-[#2C2C2C]">
+          <div className="flex justify-between font-semibold text-charcoal">
             <span>Total pago</span>
-            <span className="text-[#C1522A]">{formatCurrency(pedido.total)}</span>
+            <span className="text-terracotta">{formatCurrency(pedido.total)}</span>
           </div>
         </div>
       </div>
 
-      <div className="mt-8 grid gap-4 bg-[#F5F0EB] p-6 sm:grid-cols-2">
+      <div className="mt-8 grid gap-4 bg-beige p-6 sm:grid-cols-2">
         <div>
           <p className="section-label mb-2">Endereço de entrega</p>
           <p className="text-sm text-[#555]">{pedido.enderecoEntrega}</p>

@@ -7,11 +7,11 @@ interface LoadingStateProps {
 function SkeletonCard() {
   return (
     <div className="card animate-pulse overflow-hidden">
-      <div className="h-[220px] bg-[#E8E0D5]" />
+      <div className="h-[220px] bg-beige-dark" />
       <div className="space-y-3 p-5">
-        <div className="h-3 w-1/3 rounded bg-[#E8E0D5]" />
-        <div className="h-4 w-3/4 rounded bg-[#E8E0D5]" />
-        <div className="h-4 w-1/2 rounded bg-[#E8E0D5]" />
+        <div className="h-3 w-1/3 rounded bg-beige-dark" />
+        <div className="h-4 w-3/4 rounded bg-beige-dark" />
+        <div className="h-4 w-1/2 rounded bg-beige-dark" />
       </div>
     </div>
   );
@@ -19,11 +19,11 @@ function SkeletonCard() {
 
 function SkeletonLinha() {
   return (
-    <div className="flex animate-pulse items-center gap-4 border-b border-[#E8E0D5] py-4">
-      <div className="h-16 w-16 shrink-0 rounded bg-[#E8E0D5]" />
+    <div className="flex animate-pulse items-center gap-4 border-b border-beige-dark py-4">
+      <div className="h-16 w-16 shrink-0 rounded bg-beige-dark" />
       <div className="flex-1 space-y-2">
-        <div className="h-3 w-1/4 rounded bg-[#E8E0D5]" />
-        <div className="h-4 w-2/3 rounded bg-[#E8E0D5]" />
+        <div className="h-3 w-1/4 rounded bg-beige-dark" />
+        <div className="h-4 w-2/3 rounded bg-beige-dark" />
       </div>
     </div>
   );
@@ -42,7 +42,7 @@ export default function LoadingState({ variante = "grid", itens = 6, mensagem }:
         </div>
       )}
       {variante === "lista" && <div>{Array.from({ length: itens }).map((_, indice) => <SkeletonLinha key={indice} />)}</div>}
-      {variante === "texto" && <div className="h-4 w-2/3 animate-pulse rounded bg-[#E8E0D5]" />}
+      {variante === "texto" && <div className="h-4 w-2/3 animate-pulse rounded bg-beige-dark" />}
     </div>
   );
 }

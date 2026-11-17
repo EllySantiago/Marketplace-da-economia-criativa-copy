@@ -14,7 +14,7 @@ export default function ArtesoesPage() {
     <PublicLayout>
       <main className="mx-auto max-w-[1440px] px-6 py-12 md:px-12">
         <p className="section-label">Mestres Artesãos</p>
-        <h1 className="mt-2 font-display text-5xl text-[#2C2C2C]">Quem faz o Origem acontecer</h1>
+        <h1 className="mt-2 font-display text-5xl text-charcoal">Quem faz o Origem acontecer</h1>
         <p className="mt-3 max-w-xl text-sm text-[#888]">Artesãos verificados do Agreste, Sertão, Zona da Mata e Região Metropolitana do Recife.</p>
 
         <div className="mt-10">

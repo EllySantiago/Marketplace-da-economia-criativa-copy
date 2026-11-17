@@ -33,7 +33,7 @@ export default function OrderDetails({ codigo }: { codigo: string }) {
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-4xl text-[#2C2C2C]">Pedido {pedido.codigo}</h1>
+          <h1 className="font-display text-4xl text-charcoal">Pedido {pedido.codigo}</h1>
           <p className="mt-1 text-sm text-[#888]">Realizado em {formatDate(pedido.data)}</p>
         </div>
         <OrderStatus status={pedido.status} />
@@ -41,13 +41,13 @@ export default function OrderDetails({ codigo }: { codigo: string }) {
 
       <div className="card mt-8 p-6">
         <h2 className="font-display text-xl">Itens</h2>
-        <ul className="mt-4 space-y-3 border-b border-[#E8E0D5] pb-4">
+        <ul className="mt-4 space-y-3 border-b border-beige-dark pb-4">
           {pedido.itens.map((item) => (
             <li key={item.produto.id} className="flex items-center gap-3 text-sm">
               <img src={item.produto.imagem} alt="" className="h-14 w-14 shrink-0 object-cover" />
               <div className="min-w-0 flex-1">
                 <Badge>{item.produto.tecnica}</Badge>
-                <Link href={ROTAS.produto(item.produto.id)} className="mt-1 block truncate font-medium hover:text-[#C1522A]">
+                <Link href={ROTAS.produto(item.produto.id)} className="mt-1 block truncate font-medium hover:text-terracotta">
                   {item.produto.nome}
                 </Link>
                 <p className="text-xs text-[#888]">
@@ -67,14 +67,14 @@ export default function OrderDetails({ codigo }: { codigo: string }) {
             <span>Frete</span>
             <span>{pedido.frete ? formatCurrency(pedido.frete) : "Grátis"}</span>
           </div>
-          <div className="flex justify-between font-semibold text-[#2C2C2C]">
+          <div className="flex justify-between font-semibold text-charcoal">
             <span>Total</span>
-            <span className="text-[#C1522A]">{formatCurrency(pedido.total)}</span>
+            <span className="text-terracotta">{formatCurrency(pedido.total)}</span>
           </div>
         </div>
       </div>
 
-      <div className="mt-8 grid gap-4 bg-[#F5F0EB] p-6 sm:grid-cols-3">
+      <div className="mt-8 grid gap-4 bg-beige p-6 sm:grid-cols-3">
         <div>
           <p className="section-label mb-2">Endereço de entrega</p>
           <p className="text-sm text-[#555]">{pedido.enderecoEntrega}</p>

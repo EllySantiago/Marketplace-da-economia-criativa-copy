@@ -8,7 +8,7 @@ export default async function PedidoPage({ params }: { params: Promise<{ id: str
   return (
     <PublicLayout>
       <main className="mx-auto max-w-[900px] px-6 py-12 md:px-12">
-        <Link href={ROTAS.pedidos} className="text-sm text-[#888] hover:text-[#C1522A]">
+        <Link href={ROTAS.pedidos} className="text-sm text-[#888] hover:text-terracotta">
           ← Meus pedidos
         </Link>
         <div className="mt-8">

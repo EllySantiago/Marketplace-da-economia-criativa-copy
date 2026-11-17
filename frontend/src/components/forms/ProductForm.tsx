@@ -96,7 +96,7 @@ export default function ProductForm({ artesaoId, regiaoPadrao, produtoExistente,
       <div className="grid grid-cols-3 gap-4">
         <label className="block text-sm font-medium">
           Categoria
-          <select className="mt-2 w-full border border-[#E8E0D5] bg-white px-3 py-3 text-sm" value={campos.categoria} onChange={(e) => atualizar("categoria", e.target.value)}>
+          <select className="mt-2 w-full border border-beige-dark bg-white px-3 py-3 text-sm" value={campos.categoria} onChange={(e) => atualizar("categoria", e.target.value)}>
             {CATEGORIAS.map((categoria) => (
               <option key={categoria}>{categoria}</option>
             ))}
@@ -104,7 +104,7 @@ export default function ProductForm({ artesaoId, regiaoPadrao, produtoExistente,
         </label>
         <label className="block text-sm font-medium">
           Técnica
-          <select className="mt-2 w-full border border-[#E8E0D5] bg-white px-3 py-3 text-sm" value={campos.tecnica} onChange={(e) => atualizar("tecnica", e.target.value)}>
+          <select className="mt-2 w-full border border-beige-dark bg-white px-3 py-3 text-sm" value={campos.tecnica} onChange={(e) => atualizar("tecnica", e.target.value)}>
             {TECNICAS.map((tecnica) => (
               <option key={tecnica}>{tecnica}</option>
             ))}
@@ -112,7 +112,7 @@ export default function ProductForm({ artesaoId, regiaoPadrao, produtoExistente,
         </label>
         <label className="block text-sm font-medium">
           Região
-          <select className="mt-2 w-full border border-[#E8E0D5] bg-white px-3 py-3 text-sm" value={campos.regiao} onChange={(e) => atualizar("regiao", e.target.value)}>
+          <select className="mt-2 w-full border border-beige-dark bg-white px-3 py-3 text-sm" value={campos.regiao} onChange={(e) => atualizar("regiao", e.target.value)}>
             {REGIOES.map((regiao) => (
               <option key={regiao}>{regiao}</option>
             ))}

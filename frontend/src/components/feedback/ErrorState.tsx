@@ -11,7 +11,7 @@ export default function ErrorState({ titulo = "Algo deu errado", mensagem, onTen
       <p className="text-2xl" aria-hidden="true">
         ⚠️
       </p>
-      <p className="font-display mt-3 text-xl text-[#2C2C2C]">{titulo}</p>
+      <p className="font-display mt-3 text-xl text-charcoal">{titulo}</p>
       {mensagem && <p className="mt-2 text-sm text-[#666]">{mensagem}</p>}
       {onTentarNovamente && (
         <button type="button" onClick={onTentarNovamente} className="btn-outline mt-5">

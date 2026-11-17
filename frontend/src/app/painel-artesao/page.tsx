@@ -35,7 +35,7 @@ function MetricCard({ label, valor }: { label: string; valor: string }) {
   return (
     <div className="metric-card">
       <p className="text-xs uppercase tracking-[.08em] text-[#888]">{label}</p>
-      <p className="font-display mt-2 text-2xl text-[#2C2C2C]">{valor}</p>
+      <p className="font-display mt-2 text-2xl text-charcoal">{valor}</p>
     </div>
   );
 }
@@ -106,7 +106,7 @@ export default function PainelArtesaoPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#F5F0EB]">
+    <div className="flex min-h-screen bg-beige">
       <Sidebar
         titulo="Painel do Artesão"
         subtitulo={artesao ? `${artesao.cidade} · ${artesao.regiao}` : usuario.nome}
@@ -231,7 +231,7 @@ export default function PainelArtesaoPage() {
                             value={statusSelecionado[pedido.codigo] ?? ""}
                             disabled={salvandoCodigo === pedido.codigo}
                             onChange={(evento) => setStatusSelecionado((atual) => ({ ...atual, [pedido.codigo]: evento.target.value as StatusPedido | "" }))}
-                            className="border border-[#E8E0D5] bg-white px-2 py-1 text-sm disabled:opacity-50"
+                            className="border border-beige-dark bg-white px-2 py-1 text-sm disabled:opacity-50"
                           >
                             <option value="">Atualizar status</option>
                             {obterProximosStatus(pedido.status).map((status) => (
@@ -252,7 +252,7 @@ export default function PainelArtesaoPage() {
                         </>
                       )}
                     </div>
-                    <span className="font-semibold text-[#C1522A]">{formatCurrency(pedido.total)}</span>
+                    <span className="font-semibold text-terracotta">{formatCurrency(pedido.total)}</span>
                   </Card>
                 ))}
               </div>
@@ -281,7 +281,7 @@ export default function PainelArtesaoPage() {
                     {produtos.map((produto) => (
                       <tr key={produto.id} className="table-row">
                         <td>
-                          <Link href={ROTAS.produto(produto.id)} className="hover:text-[#C1522A]">
+                          <Link href={ROTAS.produto(produto.id)} className="hover:text-terracotta">
                             {produto.nome}
                           </Link>
                         </td>
@@ -294,7 +294,7 @@ export default function PainelArtesaoPage() {
                         </td>
                         <td>
                           <div className="flex gap-2">
-                            <button type="button" onClick={() => editarProduto(produto)} className="border border-[#E8E0D5] bg-white px-2 py-1 text-xs font-semibold text-[#555]">
+                            <button type="button" onClick={() => editarProduto(produto)} className="border border-beige-dark bg-white px-2 py-1 text-xs font-semibold text-[#555]">
                               Editar
                             </button>
                             <button

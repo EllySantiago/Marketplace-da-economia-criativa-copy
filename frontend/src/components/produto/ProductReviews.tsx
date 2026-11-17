@@ -12,9 +12,9 @@ import { formatDate } from "@/utils/formatDate";
 
 function Estrelas({ nota }: { nota: number }) {
   return (
-    <span className="text-[#C1522A]" aria-label={`${nota} de 5 estrelas`}>
+    <span className="text-terracotta" aria-label={`${nota} de 5 estrelas`}>
       {"★".repeat(nota)}
-      <span className="text-[#E8E0D5]">{"★".repeat(5 - nota)}</span>
+      <span className="text-beige-dark">{"★".repeat(5 - nota)}</span>
     </span>
   );
 }
@@ -66,9 +66,9 @@ export default function ProductReviews({ produtoId }: { produtoId: number }) {
           {!carregando && avaliacoes.length > 0 && (
             <ul className="space-y-5">
               {avaliacoes.map((avaliacao) => (
-                <li key={avaliacao.id} className="border-b border-[#E8E0D5] pb-5">
+                <li key={avaliacao.id} className="border-b border-beige-dark pb-5">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold text-[#2C2C2C]">{avaliacao.usuarioNome}</p>
+                    <p className="text-sm font-semibold text-charcoal">{avaliacao.usuarioNome}</p>
                     <span className="text-xs text-[#888]">{formatDate(avaliacao.criadoEm)}</span>
                   </div>
                   <Estrelas nota={avaliacao.nota} />
@@ -79,7 +79,7 @@ export default function ProductReviews({ produtoId }: { produtoId: number }) {
           )}
         </div>
 
-        <aside className="h-fit border border-[#E8E0D5] bg-white p-6">
+        <aside className="h-fit border border-beige-dark bg-white p-6">
           <h3 className="font-display text-lg">Deixe sua avaliação</h3>
           {!usuario ? (
             <p className="mt-3 text-sm text-[#888]">Entre na sua conta para avaliar esta peça.</p>
@@ -89,7 +89,7 @@ export default function ProductReviews({ produtoId }: { produtoId: number }) {
                 <p className="mb-2 text-xs font-bold uppercase tracking-[.08em] text-[#888]">Sua nota</p>
                 <div className="flex gap-1 text-xl">
                   {[1, 2, 3, 4, 5].map((valor) => (
-                    <button key={valor} type="button" onClick={() => setNota(valor)} aria-label={`${valor} estrela${valor > 1 ? "s" : ""}`} className={valor <= nota ? "text-[#C1522A]" : "text-[#E8E0D5]"}>
+                    <button key={valor} type="button" onClick={() => setNota(valor)} aria-label={`${valor} estrela${valor > 1 ? "s" : ""}`} className={valor <= nota ? "text-terracotta" : "text-beige-dark"}>
                       ★
                     </button>
                   ))}
