@@ -24,15 +24,15 @@ O cenário exige que, entre 50 compras simultâneas para 10 unidades, exatamente
 
 ## Consequências
 
-Ganhos: impossibilidade de vender além do estoque, mesmo sob compras simultâneas; pedidos com vários itens são tudo-ou-nada; transação curta; nenhuma infraestrutura extra; código organizado e fácil de testar por camada.
-Perdas: mais código intermediário e chamadas entre camadas; dependência de disciplina da equipe, porque quem acessar o banco fora do repositório quebra a garantia; convivência de Prisma com SQL puro, o que reduz a uniformidade do código; acoplamento ao PostgreSQL; o comprador que perde a disputa recebe erro de estoque insuficiente, e a interface precisa tratar isso bem.
+- Ganhos: impossibilidade de vender além do estoque, mesmo sob compras simultâneas; pedidos com vários itens são tudo-ou-nada; transação curta; nenhuma infraestrutura extra; código organizado e fácil de testar por camada.
+- Perdas: mais código intermediário e chamadas entre camadas; dependência de disciplina da equipe, porque quem acessar o banco fora do repositório quebra a garantia; convivência de Prisma com SQL puro, o que reduz a uniformidade do código; acoplamento ao PostgreSQL; o comprador que perde a disputa recebe erro de estoque insuficiente, e a interface precisa tratar isso bem.
 
 ## Alternativas consideradas
 
-Orientado a Eventos no checkout: descartado porque traz consistência eventual, e o comprador poderia receber aprovação antes da confirmação do estoque, o que viola o cenário. Ficou restrito às tarefas pós-pedido.
-CQRS: descartado porque não resolve a concorrência na escrita do estoque e adiciona complexidade incompatível com o prazo.
-Leitura seguida de atualização na aplicação: descartada porque o teste mostrou 50 aprovações e 41 escritas perdidas.
-Lock distribuído (Redis): descartado porque exige infraestrutura extra sem orçamento, e o PostgreSQL já resolve o problema.
+- Orientado a Eventos no checkout: descartado porque traz consistência eventual, e o comprador poderia receber aprovação antes da confirmação do estoque, o que viola o cenário. Ficou restrito às tarefas pós-pedido.
+- CQRS: descartado porque não resolve a concorrência na escrita do estoque e adiciona complexidade incompatível com o prazo.
+- Leitura seguida de atualização na aplicação: descartada porque o teste mostrou 50 aprovações e 41 escritas perdidas.
+- Lock distribuído (Redis): descartado porque exige infraestrutura extra sem orçamento, e o PostgreSQL já resolve o problema.
 
 ## Rastreabilidade
 
@@ -46,7 +46,7 @@ Lock distribuído (Redis): descartado porque exige infraestrutura extra sem orç
 
 **Táticas empacotadas:** Encapsular responsabilidades por faixa; Restringir dependências a uma direção; Usar intermediário entre camadas
 
-backend/ (camadas routes, controllers, services, repositories); RELATORIO.md (entrega FCCPD U1); evidencias/ (saídas dos testes de concorrência); docs/arquitetura.md; docs/Origem_DDL.md
+- **Artefatos relacionados:** backend/ (camadas routes, controllers, services, repositories); RELATORIO.md (entrega FCCPD U1); evidencias/ (saídas dos testes de concorrência); docs/arquitetura.md; docs/Origem_DDL.md
 
 ## Verificação
 
