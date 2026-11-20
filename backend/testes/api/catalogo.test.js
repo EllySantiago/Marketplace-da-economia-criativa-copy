@@ -225,7 +225,7 @@ describe("GET /artesoes", () => {
       fotoUrl: maria.fotoUrl,
       capaUrl: maria.capaUrl,
       tecnicas: ["Cerâmica", "Barro Cozido", "Alto do Moura"],
-      avaliacaoMedia: 4.5, // notas 5 e 4 no produto 1
+      avaliacaoMedia: 4, // notas 5 e 4 no produto 1 e 3 no produto 9 (seed da H1.1)
       totalVendas: undefined,
       totalProdutos: 3,
       desde: 1993,
