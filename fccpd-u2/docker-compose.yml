@@ -1,0 +1,28 @@
+# Banco de BENCHMARK do FCCPD U2: o schema e o seed normais + os dados de carga.
+#
+# Separado do banco de desenvolvimento (backend/docker-compose.yml, porta 5434)
+# para os milhares de produtos de carga nunca aparecerem na vitrine. Os dados
+# ficam em memória (tmpfs): cada "up" começa do zero, sempre igual.
+#
+#   subir:    docker compose up -d        (dentro de fccpd-u2/; a carga leva uns 20 s;
+#             o benchmark.py espera ela terminar)
+#   derrubar: docker compose down
+#   URL:      postgres://origem:origem@localhost:5435/origem
+
+services:
+  postgres-carga:
+    image: postgres:16-alpine
+    container_name: origem-postgres-carga
+    environment:
+      POSTGRES_USER: origem
+      POSTGRES_PASSWORD: origem
+      POSTGRES_DB: origem
+    ports:
+      - "5435:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    volumes:
+      # Mesmos scripts do backend, na mesma ordem, e a carga por último.
+      - ../backend/sql:/base:ro,z
+      - ./carga.sql:/carga/carga.sql:ro,z
+      - ./iniciar.sh:/docker-entrypoint-initdb.d/iniciar.sh:ro,z
