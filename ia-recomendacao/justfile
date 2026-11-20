@@ -13,9 +13,9 @@ testes:
     # Com o `just serve` rodando em outro terminal.
     bash testes/casos.sh
 
-# Regera dados/catalogo.json a partir dos mocks do frontend (Node 23+). Rode `just treino` depois.
-catalogo:
-    node scripts/exportar_catalogo.mjs
+# Regera o retrato dados/catalogo.json a partir do banco (usado quando o banco está fora do ar).
+retrato:
+    uv run python exportar.py
 
 # Empacote opcional: Bento → imagem OCI → container (precisa de Docker).
 # Com Podman: acrescente `--backend podman` ao containerize e troque docker por podman abaixo.

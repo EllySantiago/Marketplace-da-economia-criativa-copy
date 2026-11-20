@@ -12,8 +12,8 @@ offline: os dados vêm do PostgreSQL do backend a cada chamada, pelas funções 
 
 | Arquivo | Papel |
 |---|---|
-| `dados/catalogo.json` | catálogo sintético: 11 produtos e histórico de compra |
-| `scripts/exportar_catalogo.mjs` | gera o catálogo a partir de `frontend/src/mocks/` (mesmos ids da Fake API) |
+| `dados/catalogo.json` | retrato do banco (produtos, compradores, histórico e avaliações), usado quando o banco está fora do ar |
+| `exportar.py` | gera o retrato a partir do banco, pelas funções de `dados.py` (`just retrato`) |
 | `dados.py` | funções de acesso: `listar_produtos`, `buscar_produto`, `historico_do_usuario`, `listar_avaliacoes`; o módulo só chega aos dados por elas |
 | `recomendador.py` | regras puras: elegibilidade, similaridade, histórico, popularidade, limite por artesão |
 | `service.py` | online: serviço BentoML com as rotas REST da AV1 (FastAPI montada em `/api`) |
@@ -22,16 +22,17 @@ offline: os dados vêm do PostgreSQL do backend a cada chamada, pelas funções 
 
 ## Dados sintéticos
 
-- **Produtos 1 a 10:** os mesmos da Fake API do frontend (nome, técnica, região, artesão,
-  estoque). O produto 8 está **sem estoque** e o 11, que só existe aqui, está **inativo** — os
-  dois servem para mostrar o RF-04.
-- **`vendas`:** números inventados (a Fake API não tem contagem de vendas). **`notaMedia`:**
-  média das avaliações de `avaliacoes.mock.ts`, ou 0 sem avaliação.
-- **`historico`:** só ids de produto por usuário, tirados de `pedidos.mock.ts` (RNF-03: nada de
-  endereço ou pagamento). Só a usuária 1 tem compras; qualquer outro usuário — inclusive um
-  comprador recém-cadastrado no frontend — cai na popularidade. Compras novas feitas no checkout
-  da Fake API não chegam ao módulo (o histórico é o do catálogo); seria a leitura da tabela de
-  pedidos no backend real.
+- **Fonte:** o seed do backend (`backend/sql/02_seed.sql`), lido do PostgreSQL a cada chamada.
+  São 13 produtos, 5 artesãs e artesãos (uma da Comunidade do Pilar) e 7 compradores. Todas as
+  pessoas são fictícias.
+- **`vendas`:** unidades vendidas em pedidos não cancelados. **`notaMedia`:** média das
+  avaliações do produto, ou 0 sem avaliação.
+- **Histórico:** só ids de produto por usuário (RNF-03: nada de endereço ou pagamento).
+- **Casos difíceis de propósito:** o produto 8 está **sem estoque** (RF-04); a compradora 13
+  não tem **nenhuma compra** e recebe só popularidade; o produto 13 não tem venda nem avaliação;
+  o pedido 9 está **cancelado** e não conta como compra; produto ou usuário inexistente devolve
+  404. Com o **banco fora do ar**, as funções de `dados.py` respondem pelo retrato
+  `dados/catalogo.json`, com o mesmo resultado.
 
 ## Regras
 
