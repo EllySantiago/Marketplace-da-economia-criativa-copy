@@ -5,7 +5,8 @@ casos de teste estão no [README da raiz](../README.md#ia--av2-mockup-do-módulo
 Este arquivo explica o que há dentro da pasta.
 
 Base: [lgallindo/recomendador-bentoml](https://github.com/lgallindo/recomendador-bentoml)
-(Trilha A). Mesmo arco treino → serve; as regras e o contrato HTTP seguem a AV1 do Origem.
+(Trilha A). As regras e o contrato HTTP seguem a AV1 do Origem. Desde a U2 não há mais treino
+offline: os dados vêm do PostgreSQL do backend a cada chamada, pelas funções de `dados.py`.
 
 ## Arquivos
 
@@ -13,7 +14,7 @@ Base: [lgallindo/recomendador-bentoml](https://github.com/lgallindo/recomendador
 |---|---|
 | `dados/catalogo.json` | catálogo sintético: 11 produtos e histórico de compra |
 | `scripts/exportar_catalogo.mjs` | gera o catálogo a partir de `frontend/src/mocks/` (mesmos ids da Fake API) |
-| `treino.py` | offline: calcula a popularidade e grava `recomendador-origem` no store do BentoML |
+| `dados.py` | funções de acesso: `listar_produtos`, `buscar_produto`, `historico_do_usuario`, `listar_avaliacoes`; o módulo só chega aos dados por elas |
 | `recomendador.py` | regras puras: elegibilidade, similaridade, histórico, popularidade, limite por artesão |
 | `service.py` | online: serviço BentoML com as rotas REST da AV1 (FastAPI montada em `/api`) |
 | `testes/casos.sh` | roda os casos de teste do README e mostra OK/FALHOU |
@@ -38,8 +39,8 @@ Base: [lgallindo/recomendador-bentoml](https://github.com/lgallindo/recomendador
   devolvido é o atributo de maior peso em comum.
 - **Histórico (RF-06):** técnica de algum item comprado +2, categoria +1; itens já comprados
   não voltam.
-- **Popularidade (RF-07):** `0,7 × vendas / maior venda + 0,3 × nota média / 5`, calculada no
-  treino. Completa qualquer lista que fique abaixo do `limite`.
+- **Popularidade (RF-07):** `0,7 × vendas / maior venda + 0,3 × nota média / 5`, calculada na
+  hora, a partir das vendas e notas atuais do banco. Completa qualquer lista que fique abaixo do `limite`.
 - **Elegibilidade (RF-04)** e **no máximo 2 por artesão (RNF-06)** valem para todas as listas.
   Empates no score saem pelo mais popular e, depois, pelo menor id — a resposta é sempre a mesma.
 
@@ -47,7 +48,7 @@ Base: [lgallindo/recomendador-bentoml](https://github.com/lgallindo/recomendador
 
 - **Rotas REST em vez do `@bentoml.api`:** a AV1 especifica `GET /produtos/:id/recomendados`
   com erros 400/404/503 e corpo `{ "erro": ... }`. Uma app FastAPI montada no serviço BentoML
-  (`@bentoml.asgi_app`) mantém esse contrato; o modelo continua carregado do store do BentoML.
+  (`@bentoml.asgi_app`) mantém esse contrato.
   As rotas ficam sob `/api`, como no ponto de integração descrito no `design.md` da AV1.
 - **Porta 3001:** a 3000 é do frontend Next.js.
 - **Autenticação simulada:** o header `X-Usuario-Id` faz o papel do usuário logado (a Fake API
@@ -56,10 +57,10 @@ Base: [lgallindo/recomendador-bentoml](https://github.com/lgallindo/recomendador
   RF-08; sem ele, o timeout de 2 s e o tratamento de erro valem do mesmo jeito.
 - **Log em arquivo:** o `recomendacao_log` vira um JSONL, gravado só quando a resposta é 200; se a
   gravação falhar, a resposta sai mesmo assim (best-effort, como no `design.md`).
-- **Fora do mockup:** PostgreSQL e as metas de desempenho do RNF-01/RNF-05 (p95 de 300 ms com
-  10.000 produtos) não foram medidas.
+- **Fora do mockup:** as metas de desempenho do RNF-01/RNF-05 (p95 de 300 ms com 10.000
+  produtos) não foram medidas.
 
 ## Empacotar (opcional)
 
 `just imagem` gera o Bento e a imagem Docker `recomendador-origem:av2`; `just serve-container`
-sobe a mesma API na porta 3001. Precisa de Docker e de `just treino` antes.
+sobe a mesma API na porta 3001. Precisa de Docker.

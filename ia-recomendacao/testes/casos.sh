@@ -31,7 +31,7 @@ ids='[r["id"] for r in d["recomendacoes"]]'
 criterios='[r["criterio"] for r in d["recomendacoes"]]'
 
 caso "1. similaridade + popularidade (RF-01/04/07)" 200 \
-  "$ids == [5, 9, 3, 4] and $criterios == ['mesmo-artesao', 'mesmo-artesao', 'popularidade', 'popularidade']" \
+  "$ids == [5, 9, 3, 11] and $criterios == ['mesmo-artesao', 'mesmo-artesao', 'popularidade', 'popularidade']" \
   "$BASE/produtos/1/recomendados?limite=4"
 
 caso "2. produto inexistente (RF-02)" 404 \
@@ -47,7 +47,7 @@ TEMPO_MAX=3 caso "4. lentidão vira 503 em ~2 s (RF-08)" 503 \
   -H 'X-Simular-Falha: lentidao' "$BASE/produtos/1/recomendados"
 
 caso "5. histórico de compra (RF-06)" 200 \
-  "$ids == [5, 7, 9, 2, 6]" \
+  "$ids == [5, 7, 9, 12, 2]" \
   -H 'X-Usuario-Id: 1' "$BASE/usuarios/1/recomendados?limite=5"
 
 caso "6. sem autenticação → 401 (RF-06)" 401 \

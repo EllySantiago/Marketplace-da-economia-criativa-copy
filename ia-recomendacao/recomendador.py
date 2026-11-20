@@ -1,7 +1,8 @@
 """Estratégias de recomendação do Origem — funções puras, sem HTTP.
 
-O service.py cuida do contrato HTTP (rotas, status, log); aqui fica só a regra:
-quem é elegível, como cada candidato pontua e como a lista é completada.
+O service.py cuida do contrato HTTP (rotas, status, log) e busca os dados pelas
+funções de dados.py; aqui fica só a regra: quem é elegível, como cada candidato
+pontua e como a lista é completada. Nenhuma função daqui lê banco ou arquivo.
 """
 
 from __future__ import annotations
@@ -21,8 +22,25 @@ CAMPOS_PRODUTO = (
 
 
 def elegivel(produto: dict) -> bool:
-    """RF-04: só entra produto ativo e com estoque."""
-    return produto["status"] == "ativo" and produto["estoque"] > 0
+    """RF-04: só entra produto ativo, com estoque e de artesão aprovado (o que a vitrine mostra)."""
+    return produto["status"] == "ativo" and produto["estoque"] > 0 and produto.get("artesaoAprovado", True)
+
+
+def montar_artefato(produtos: list[dict]) -> dict:
+    """Indexa os produtos e calcula a popularidade (RF-07).
+
+    Popularidade = 0,7 × vendas / maior venda + 0,3 × nota média / 5, em escala 0…1.
+    É recalculada a cada chamada, a partir dos dados atuais: mudou uma venda ou
+    uma nota no banco, muda o ranking.
+    """
+    por_id = {str(p["id"]): p for p in produtos}
+    max_vendas = max((p["vendas"] for p in produtos), default=0) or 1
+    pop = {
+        pid: round(0.7 * p["vendas"] / max_vendas + 0.3 * p["notaMedia"] / 5, 4)
+        for pid, p in por_id.items()
+    }
+    ranking = sorted(por_id, key=lambda pid: (-pop[pid], int(pid)))
+    return {"produtos": por_id, "pop": pop, "ranking_popularidade": ranking}
 
 
 def similaridade(referencia: dict, produto: dict) -> tuple[int, str]:
@@ -112,11 +130,10 @@ def por_produto(artefato: dict, produto_id: int, limite: int) -> list[dict]:
     return _montar(pontuados, artefato, {produto_id}, limite)
 
 
-def por_usuario(artefato: dict, usuario_id: int, limite: int) -> list[dict]:
+def por_usuario(artefato: dict, ids_comprados: list[int], limite: int) -> list[dict]:
     """RF-06: histórico de compra; sem histórico, só popularidade (RF-07)."""
     produtos = artefato["produtos"]
-    ids_comprados = artefato["historico"].get(str(usuario_id), [])
-    comprados = [produtos[str(pid)] for pid in ids_comprados]
+    comprados = [produtos[str(pid)] for pid in ids_comprados if str(pid) in produtos]
     pontuados = []
     if comprados:
         for produto in produtos.values():
