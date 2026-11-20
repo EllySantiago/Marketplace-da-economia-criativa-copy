@@ -164,6 +164,43 @@ def listar_compradores() -> list[int]:
     return _ler(do_banco, lambda retrato: retrato["compradores"])
 
 
+def historicos_de_todos() -> dict[int, list[int]]:
+    """Histórico de TODOS os compradores numa consulta só: {usuario_id: [ids de produto]}.
+
+    Mesmas regras de historico_do_usuario (sem pedido cancelado, ordem da
+    primeira compra). Comprador sem compras aparece com []. Dicionário vazio se
+    não houver comprador. Feita para o lote do FCCPD: uma ida ao banco em vez
+    de uma por usuário.
+    """
+    def do_banco():
+        with _conectar() as conexao:
+            linhas = conexao.execute(
+                """
+                SELECT u.id AS usuario_id, h.produto_id
+                  FROM usuario u
+                  LEFT JOIN LATERAL (
+                        SELECT ip.produto_id, MIN(pe.criado_em) AS primeira
+                          FROM pedido pe
+                          JOIN item_pedido ip ON ip.pedido_id = pe.id
+                         WHERE pe.comprador_id = u.id AND pe.status <> 'cancelado'
+                         GROUP BY ip.produto_id) h ON TRUE
+                 WHERE u.perfil = 'comprador'
+                 ORDER BY u.id, h.primeira, h.produto_id
+                """
+            ).fetchall()
+        historicos: dict[int, list[int]] = {}
+        for linha in linhas:
+            lista = historicos.setdefault(linha["usuario_id"], [])
+            if linha["produto_id"] is not None:
+                lista.append(linha["produto_id"])
+        return historicos
+
+    def do_retrato(retrato):
+        return {u: retrato["historico"].get(str(u), []) for u in retrato["compradores"]}
+
+    return _ler(do_banco, do_retrato)
+
+
 def _ids_de_usuarios() -> list[int]:
     """Uso interno do exportar.py: ids de todos os usuários, para o retrato saber quem existe."""
     with _conectar() as conexao:
