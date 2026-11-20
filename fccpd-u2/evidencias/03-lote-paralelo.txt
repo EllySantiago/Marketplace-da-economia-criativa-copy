@@ -1,0 +1,23 @@
+# Evidência 3 · lote de recomendações: sequencial e com 4 processos (banco de benchmark, porta 5435)
+# Gerada em 20/11/2026 13:44:37 · commit 6c68419
+
+$ uv run python lote.py --processos 1
+5007 compradores × 4013 produtos, 1 processo(s), dados do banco
+leitura 0.078 s · cálculo 11.323 s · gravação 0.003 s · total 11.403 s → ia-recomendacao/logs/lote_recomendacoes.json
+
+$ uv run python lote.py --processos 4
+## Durante a execução (ps: pid, pai, %CPU, tempo, comando): 54012 é o processo principal do lote; 54015 é o
+## rastreador de recursos do multiprocessing (quase sem CPU); 54016, 54019, 54020 e 54021 são os 4 processos de
+## trabalho, filhos do principal, cada um ocupando um núcleo inteiro (%CPU 99,6).
+  54007   53923  0.0       00:03 uv run python lote.py --processos 4
+  54012   54007  3.7       00:03 ia-recomendacao/.venv/bin/python lote.py --proc
+  54015   54012  0.3       00:03 ia-recomendacao/.venv/bin/python -c from multip
+  54016   54012 99.6       00:03 ia-recomendacao/.venv/bin/python -c from multip
+  54019   54012 99.6       00:03 ia-recomendacao/.venv/bin/python -c from multip
+  54020   54012 99.6       00:03 ia-recomendacao/.venv/bin/python -c from multip
+  54021   54012 99.6       00:03 ia-recomendacao/.venv/bin/python -c from multip
+5007 compradores × 4013 produtos, 4 processo(s), dados do banco
+leitura 0.091 s · cálculo 3.709 s · gravação 0.003 s · total 3.803 s → ia-recomendacao/logs/lote_recomendacoes.json
+
+## O resultado com 4 processos é idêntico ao sequencial?
+sim: os dois arquivos logs/lote_recomendacoes.json são byte a byte iguais

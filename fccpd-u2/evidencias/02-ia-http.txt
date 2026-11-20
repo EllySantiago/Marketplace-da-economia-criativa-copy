@@ -1,0 +1,28 @@
+# Evidência 2 · cliente HTTP → módulo de IA (BentoML, processo próprio, porta 3001) → PostgreSQL
+# Gerada em 20/11/2026 13:44:28 · commit 6c68419
+# O frontend faz estas mesmas chamadas (frontend/src/services/api/recomendacoes.service.ts).
+
+$ curl http://127.0.0.1:3001/api/produtos/11/recomendados?limite=4
+{"produtoReferenciaId":11,"recomendacoes":[{"id":12,"nome":"Toalha Bordada Casario do Recife","preco":230.0,"imagem":"https://images.unsplash.com/photo-1628006025173-7c5558fa97c1?w=800&h=800&fit=crop&auto=format","categoria":"Renda","tecnica":"Bordado","regiao":"RMR","artesao":"Severina Cavalcanti","artesaoId":12,"criterio":"mesmo-artesao","score":4},{"id":13,"nome":"Peixe Decorativo em Madeira Reaproveitada","preco":120.0,"imagem":"https://images.unsplash.com/photo-1721508490084-1b1de5b230d4?w=800&h=800&fit=crop&auto=format","categoria":"Madeira","tecnica":"Pintura Natural","regiao":"RMR","artesao":"Severina Cavalcanti","artesaoId":12,"criterio":"mesmo-artesao","score":4},{"id":3,"nome":"Caminho de Mesa em Renda Renascença","preco":380.0,"imagem":"https://images.unsplash.com/photo-1628006025173-7c5558fa97c1?w=800&h=800&fit=crop&auto=format","categoria":"Renda","tecnica":"Renda Renascença","regiao":"RMR","artesao":"Ana Luíza Rodrigues","artesaoId":4,"criterio":"mesma-regiao","score":1},{"id":7,"nome":"Toalha de Altar em Renda de Bilro","preco":260.0,"imagem":"https://images.unsplash.com/photo-1655149238677-9b5cb1a0afc6?w=800&h=800&fit=crop&auto=format","categoria":"Renda","tecnica":"Renda Renascença","regiao":"RMR","artesao":"Ana Luíza Rodrigues","artesaoId":4,"criterio":"mesma-regiao","score":1}],"modelo":"regras-origem-u2"}
+HTTP 200 em 0.045884s
+
+$ curl -H 'X-Usuario-Id: 1' http://127.0.0.1:3001/api/usuarios/1/recomendados?limite=4
+{"usuarioId":1,"recomendacoes":[{"id":5,"nome":"Família de Bonecos do Alto do Moura","preco":195.0,"imagem":"https://images.unsplash.com/photo-1786507244330-6ad954c96ef9?w=800&h=800&fit=crop&auto=format","categoria":"Cerâmica","tecnica":"Cerâmica","regiao":"Agreste","artesao":"Maria das Graças Silva","artesaoId":2,"criterio":"historico-tecnica","score":3},{"id":9,"nome":"Jarro Decorativo em Cerâmica Vidrada","preco":210.0,"imagem":"https://images.unsplash.com/photo-1786507244330-6ad954c96ef9?w=800&h=800&fit=crop&auto=format","categoria":"Cerâmica","tecnica":"Barro Cozido","regiao":"Agreste","artesao":"Maria das Graças Silva","artesaoId":2,"criterio":"historico-categoria","score":1},{"id":2,"nome":"Oratório São Francisco em Cedro","preco":620.0,"imagem":"https://images.unsplash.com/photo-1655138493602-49901f93d250?w=800&h=800&fit=crop&auto=format","categoria":"Madeira","tecnica":"Entalhamento em Madeira","regiao":"Zona da Mata","artesao":"João Ferreira Neto","artesaoId":3,"criterio":"popularidade","score":0.7067},{"id":6,"nome":"Escultura Cabra do Sertão em Madeira","preco":340.0,"imagem":"https://images.unsplash.com/photo-1721508490084-1b1de5b230d4?w=800&h=800&fit=crop&auto=format","categoria":"Madeira","tecnica":"Entalhamento em Madeira","regiao":"Zona da Mata","artesao":"João Ferreira Neto","artesaoId":3,"criterio":"popularidade","score":0.2333}],"modelo":"regras-origem-u2"}
+HTTP 200 em 0.033460s
+
+$ curl http://127.0.0.1:3001/api/produtos/999/recomendados
+{"erro":"Produto 999 não encontrado"}
+HTTP 404
+
+## O pedido da evidência 1 (PE-5000, produtos 7 e 12) já mudou o histórico da usuária 1:
+## os produtos 7 e 12, que antes eram recomendados para ela, saíram da lista acima (já comprados).
+
+## Log do módulo (uma linha por produto recomendado, RF-03):
+{"usuario_id": null, "produto_id": 12, "criterio": "mesmo-artesao", "score": 4, "criado_em": "2026-11-20T16:44:28+00:00", "produto_referencia_id": 11}
+{"usuario_id": null, "produto_id": 13, "criterio": "mesmo-artesao", "score": 4, "criado_em": "2026-11-20T16:44:28+00:00", "produto_referencia_id": 11}
+{"usuario_id": null, "produto_id": 3, "criterio": "mesma-regiao", "score": 1, "criado_em": "2026-11-20T16:44:28+00:00", "produto_referencia_id": 11}
+{"usuario_id": null, "produto_id": 7, "criterio": "mesma-regiao", "score": 1, "criado_em": "2026-11-20T16:44:28+00:00", "produto_referencia_id": 11}
+{"usuario_id": 1, "produto_id": 5, "criterio": "historico-tecnica", "score": 3, "criado_em": "2026-11-20T16:44:28+00:00", "produto_referencia_id": null}
+{"usuario_id": 1, "produto_id": 9, "criterio": "historico-categoria", "score": 1, "criado_em": "2026-11-20T16:44:28+00:00", "produto_referencia_id": null}
+{"usuario_id": 1, "produto_id": 2, "criterio": "popularidade", "score": 0.7067, "criado_em": "2026-11-20T16:44:28+00:00", "produto_referencia_id": null}
+{"usuario_id": 1, "produto_id": 6, "criterio": "popularidade", "score": 0.2333, "criado_em": "2026-11-20T16:44:28+00:00", "produto_referencia_id": null}
