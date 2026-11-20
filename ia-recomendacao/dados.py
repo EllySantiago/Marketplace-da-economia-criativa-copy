@@ -170,22 +170,21 @@ def historicos_de_todos() -> dict[int, list[int]]:
     Mesmas regras de historico_do_usuario (sem pedido cancelado, ordem da
     primeira compra). Comprador sem compras aparece com []. Dicionário vazio se
     não houver comprador. Feita para o lote do FCCPD: uma ida ao banco em vez
-    de uma por usuário.
+    de uma por usuário. É um join agrupado (e não uma subconsulta por usuário)
+    porque item_pedido.pedido_id não tem índice: a subconsulta varreria a
+    tabela inteira uma vez para cada comprador.
     """
     def do_banco():
         with _conectar() as conexao:
             linhas = conexao.execute(
                 """
-                SELECT u.id AS usuario_id, h.produto_id
+                SELECT u.id AS usuario_id, ip.produto_id, MIN(pe.criado_em) AS primeira
                   FROM usuario u
-                  LEFT JOIN LATERAL (
-                        SELECT ip.produto_id, MIN(pe.criado_em) AS primeira
-                          FROM pedido pe
-                          JOIN item_pedido ip ON ip.pedido_id = pe.id
-                         WHERE pe.comprador_id = u.id AND pe.status <> 'cancelado'
-                         GROUP BY ip.produto_id) h ON TRUE
+                  LEFT JOIN pedido pe      ON pe.comprador_id = u.id AND pe.status <> 'cancelado'
+                  LEFT JOIN item_pedido ip ON ip.pedido_id = pe.id
                  WHERE u.perfil = 'comprador'
-                 ORDER BY u.id, h.primeira, h.produto_id
+                 GROUP BY u.id, ip.produto_id
+                 ORDER BY u.id, primeira, ip.produto_id
                 """
             ).fetchall()
         historicos: dict[int, list[int]] = {}
