@@ -13,6 +13,10 @@ testes:
     # Com o `just serve` rodando em outro terminal.
     bash testes/casos.sh
 
+testes-dados:
+    # Funções de acesso, lendo o banco e o retrato (precisa do banco no ar).
+    uv run python testes/test_dados.py
+
 # Regera o retrato dados/catalogo.json a partir do banco (usado quando o banco está fora do ar).
 retrato:
     uv run python exportar.py

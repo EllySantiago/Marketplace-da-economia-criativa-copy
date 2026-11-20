@@ -22,7 +22,8 @@ BentoML** da disciplina de IA. O andamento da U2 está em [`docs/plano-u2.md`](d
 | **Código** | [`ia-recomendacao/`](ia-recomendacao/) — detalhes de dados, regras e decisões no [README do módulo](ia-recomendacao/README.md) |
 
 O serviço sobe em `http://127.0.0.1:3001` e expõe as rotas REST especificadas na AV1. O
-catálogo é sintético (10 peças da Fake API do frontend + 1 peça inativa), e o frontend do
+catálogo vem do seed do backend (13 peças, uma artesã da Comunidade do Pilar), lido do
+PostgreSQL a cada chamada, e o frontend do
 Origem já consome o módulo na página de detalhe do produto (ver [Integração com o
 frontend](#integração-com-o-frontend)).
 
@@ -65,7 +66,7 @@ Deixe o `just serve` aberto e use outro terminal para os testes. A documentaçã
 Com o serviço no ar (`just serve`), copie e cole cada comando. Os resultados abaixo são os
 obtidos com o catálogo do repositório. Para rodar todos de uma vez e ver OK/FALHOU:
 `just testes` (= `bash testes/casos.sh`, dentro de `ia-recomendacao/`). O script confere
-os mesmos 7 casos, na mesma ordem; o caso 6 aparece em duas linhas (401 e 403) e, no caso 4,
+os mesmos 8 casos, na mesma ordem; o caso 6 aparece em duas linhas (401 e 403) e, no caso 4,
 ele também falha se a resposta passar de 3 s.
 
 **Caso 1 — caminho feliz: peças relacionadas ao produto 1 (RF-01, RF-04, RF-07).** O produto 1
@@ -164,8 +165,30 @@ chamada, porque cada recomendação devolvida vira uma linha do log. Logo após 
 numa primeira execução:
 
 ```
-{"de":null,"ate":null,"total":9,"porCriterio":{"mesmo-artesao":2,"popularidade":4,"historico-tecnica":2,"historico-categoria":1}}
+{"de":null,"ate":null,"total":9,"porCriterio":{"mesmo-artesao":2,"popularidade":3,"historico-tecnica":2,"historico-categoria":2}}
 ```
+
+**Caso 8 — usuária sem histórico de compra (caso difícil, RF-06 + RF-07).** A compradora 13
+(Lívia) existe, mas nunca comprou: em vez de erro, a lista inteira sai por popularidade.
+
+```bash
+curl -s -H 'X-Usuario-Id: 13' "http://127.0.0.1:3001/api/usuarios/13/recomendados?limite=5" | python3 -c 'import json,sys; [print(r["id"], r["criterio"], r["score"]) for r in json.load(sys.stdin)["recomendacoes"]]'
+```
+
+Resultado esperado:
+
+```
+3 popularidade 1.0
+11 popularidade 1.0
+4 popularidade 0.7667
+1 popularidade 0.7367
+2 popularidade 0.7067
+```
+
+**Funções de acesso e banco fora do ar.** `uv run python testes/test_dados.py` (dentro de
+`ia-recomendacao/`) testa as funções de `dados.py` duas vezes: lendo o banco e lendo o
+retrato `dados/catalogo.json`, com o banco desligado de propósito. Cobre produto, usuário e
+avaliação inexistentes, usuário sem compras e pedido cancelado.
 
 ### Integração com o frontend
 

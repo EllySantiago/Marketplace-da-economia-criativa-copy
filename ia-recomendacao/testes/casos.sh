@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Roda os 7 casos de teste do README contra o serviço já no ar (just serve) e diz OK/FALHOU.
+# Roda os 8 casos de teste do README contra o serviço já no ar (just serve) e diz OK/FALHOU.
 # O caso 6 tem duas verificações (401 e 403), como no README.
 # Uso: bash testes/casos.sh [url-base]   (padrão http://127.0.0.1:3001)
 
@@ -61,6 +61,10 @@ caso "6. outro usuário → 403 (RF-06)" 403 \
 caso "7. métricas do log por critério (RF-03/RNF-07)" 200 \
   "d['total'] > 0 and 'popularidade' in d['porCriterio']" \
   "$BASE/recomendacoes/metricas"
+
+caso "8. usuária sem histórico → só popularidade (RF-06/07)" 200 \
+  "$ids == [3, 11, 4, 1, 2] and set($criterios) == {'popularidade'}" \
+  -H 'X-Usuario-Id: 13' "$BASE/usuarios/13/recomendados?limite=5"
 
 echo
 if [[ $falhas -eq 0 ]]; then echo "Todos os casos passaram."; else echo "$falhas caso(s) falharam."; exit 1; fi
