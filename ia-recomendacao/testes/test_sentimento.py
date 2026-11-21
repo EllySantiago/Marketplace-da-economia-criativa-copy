@@ -11,6 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from metricas import avaliar  # noqa: E402
 from sentimento import analisar, resumir  # noqa: E402
 
 
@@ -60,6 +61,19 @@ class Regras(unittest.TestCase):
         self.assertEqual(resumir([{"sentimento": "positivo", "pontuacao": 1},
                                   {"sentimento": "negativo", "pontuacao": -1}])["rotuloGeral"], "neutro")
         self.assertIsNone(resumir([])["rotuloGeral"])
+
+
+class Metricas(unittest.TestCase):
+
+    def test_precisao_recall_e_matriz(self) -> None:
+        reais = ["positivo", "positivo", "negativo", "neutro"]
+        previstos = ["positivo", "neutro", "negativo", "positivo"]
+        m = avaliar(reais, previstos, ["positivo", "neutro", "negativo"])
+        self.assertEqual(m["acuracia"], 0.5)
+        self.assertEqual((m["por_classe"]["positivo"]["precisao"], m["por_classe"]["positivo"]["recall"]), (0.5, 0.5))
+        self.assertEqual(m["por_classe"]["negativo"]["f1"], 1.0)
+        self.assertEqual(m["por_classe"]["neutro"]["f1"], 0.0)  # sem divisão por zero
+        self.assertEqual(m["matriz"]["positivo"], {"positivo": 1, "neutro": 1, "negativo": 0})
 
 
 if __name__ == "__main__":

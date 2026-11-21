@@ -1,0 +1,262 @@
+{
+  "descricao": "Avaliações com o sentimento rotulado à mão, para medir a análise por regra (sentimento.py). As 8 primeiras são as do seed (backend/sql/02_seed.sql, mesmo id); as outras são textos fictícios escritos para o teste, sem autor e sem dado pessoal. Algumas são difíceis de propósito: ironia, negação, palavra fora do léxico e elogio misturado com reclamação.",
+  "criterio": "positivo = a pessoa recomendaria; negativo = reclama de algo que estraga a compra; neutro = mistura sem lado claro, ou só informa.",
+  "avaliacoes": [
+    {
+      "id": 1,
+      "nota": 5,
+      "rotulo": "positivo",
+      "comentario": "Peça linda, chegou muito bem embalada e com certificado de autenticidade.",
+      "conjunto": "desenvolvimento"
+    },
+    {
+      "id": 2,
+      "nota": 4,
+      "rotulo": "positivo",
+      "comentario": "Muito bonita, só achei o prazo de entrega um pouco longo.",
+      "conjunto": "desenvolvimento"
+    },
+    {
+      "id": 3,
+      "nota": 5,
+      "rotulo": "positivo",
+      "comentario": "A renda é impecável, dá pra ver o cuidado artesanal em cada detalhe.",
+      "conjunto": "desenvolvimento"
+    },
+    {
+      "id": 4,
+      "nota": 5,
+      "rotulo": "positivo",
+      "comentario": "Couro de altíssima qualidade, uso todo dia e já recebi vários elogios.",
+      "conjunto": "desenvolvimento"
+    },
+    {
+      "id": 5,
+      "nota": 4,
+      "rotulo": "positivo",
+      "comentario": "Entalhe impressionante, ficou perfeito na sala.",
+      "conjunto": "desenvolvimento"
+    },
+    {
+      "id": 6,
+      "nota": 5,
+      "rotulo": "positivo",
+      "comentario": "Crochê caprichado, a bolsa é leve e resistente. Amei saber que foi feita no Pilar.",
+      "conjunto": "desenvolvimento"
+    },
+    {
+      "id": 7,
+      "nota": 2,
+      "rotulo": "negativo",
+      "comentario": "O bordado é bonito, mas a toalha chegou manchada e a entrega atrasou.",
+      "conjunto": "desenvolvimento"
+    },
+    {
+      "id": 8,
+      "nota": 3,
+      "rotulo": "neutro",
+      "comentario": "Jarro bonito, mas menor do que parecia nas fotos.",
+      "conjunto": "desenvolvimento"
+    },
+    {
+      "id": 101,
+      "nota": 5,
+      "rotulo": "positivo",
+      "comentario": "Superou o que eu esperava, recomendo demais.",
+      "conjunto": "desenvolvimento"
+    },
+    {
+      "id": 102,
+      "nota": 1,
+      "rotulo": "negativo",
+      "comentario": "Chegou quebrado e o artesão não respondeu as mensagens.",
+      "conjunto": "desenvolvimento"
+    },
+    {
+      "id": 103,
+      "nota": 3,
+      "rotulo": "neutro",
+      "comentario": "Comprei para dar de presente, ainda não entreguei.",
+      "conjunto": "desenvolvimento"
+    },
+    {
+      "id": 104,
+      "nota": 2,
+      "rotulo": "negativo",
+      "comentario": "Não gostei do acabamento, tinha fios soltos.",
+      "conjunto": "desenvolvimento"
+    },
+    {
+      "id": 105,
+      "nota": 4,
+      "rotulo": "positivo",
+      "comentario": "Não é a coisa mais barata, mas vale a pena pela qualidade.",
+      "conjunto": "desenvolvimento"
+    },
+    {
+      "id": 106,
+      "nota": 1,
+      "rotulo": "negativo",
+      "comentario": "Que maravilha, esperei um mês e veio a peça errada.",
+      "conjunto": "desenvolvimento"
+    },
+    {
+      "id": 107,
+      "nota": 3,
+      "rotulo": "neutro",
+      "comentario": "É do tamanho informado na descrição.",
+      "conjunto": "desenvolvimento"
+    },
+    {
+      "id": 108,
+      "nota": 5,
+      "rotulo": "positivo",
+      "comentario": "Chegou rápido, dentro do prazo, e é ainda mais bonita pessoalmente.",
+      "conjunto": "desenvolvimento"
+    },
+    {
+      "id": 109,
+      "nota": 2,
+      "rotulo": "negativo",
+      "comentario": "A cor desbotou na primeira lavagem.",
+      "conjunto": "desenvolvimento"
+    },
+    {
+      "id": 110,
+      "nota": 3,
+      "rotulo": "neutro",
+      "comentario": "Bonito, mas achei caro.",
+      "conjunto": "desenvolvimento"
+    },
+    {
+      "id": 111,
+      "nota": 4,
+      "rotulo": "positivo",
+      "comentario": "Nada a reclamar, tudo certinho.",
+      "conjunto": "desenvolvimento"
+    },
+    {
+      "id": 112,
+      "nota": 1,
+      "rotulo": "negativo",
+      "comentario": "Péssima experiência, não recomendo a ninguém.",
+      "conjunto": "desenvolvimento"
+    },
+    {
+      "id": 113,
+      "nota": 5,
+      "rotulo": "positivo",
+      "comentario": "Trabalho delicado, dá pra sentir o carinho de quem fez.",
+      "conjunto": "desenvolvimento"
+    },
+    {
+      "id": 114,
+      "nota": 3,
+      "rotulo": "neutro",
+      "comentario": "Demorou um pouco, mas chegou inteiro.",
+      "conjunto": "desenvolvimento"
+    },
+    {
+      "id": 115,
+      "nota": 2,
+      "rotulo": "negativo",
+      "comentario": "Deixou a desejar, a madeira veio rachada.",
+      "conjunto": "desenvolvimento"
+    },
+    {
+      "id": 116,
+      "nota": 4,
+      "rotulo": "positivo",
+      "comentario": "Gostei bastante, só a caixa veio amassada.",
+      "conjunto": "desenvolvimento"
+    },
+    {
+      "id": 201,
+      "nota": 5,
+      "rotulo": "positivo",
+      "comentario": "Fiquei encantada com a peça, a cor é linda.",
+      "conjunto": "teste"
+    },
+    {
+      "id": 202,
+      "nota": 1,
+      "rotulo": "negativo",
+      "comentario": "Veio faltando uma parte e ninguém resolveu.",
+      "conjunto": "teste"
+    },
+    {
+      "id": 203,
+      "nota": 4,
+      "rotulo": "positivo",
+      "comentario": "Bem feito e chegou antes do prazo.",
+      "conjunto": "teste"
+    },
+    {
+      "id": 204,
+      "nota": 2,
+      "rotulo": "negativo",
+      "comentario": "A pintura descascou em poucos dias.",
+      "conjunto": "teste"
+    },
+    {
+      "id": 205,
+      "nota": 3,
+      "rotulo": "neutro",
+      "comentario": "Recebi ontem, ainda vou usar.",
+      "conjunto": "teste"
+    },
+    {
+      "id": 206,
+      "nota": 5,
+      "rotulo": "positivo",
+      "comentario": "Minha família adorou o presente.",
+      "conjunto": "teste"
+    },
+    {
+      "id": 207,
+      "nota": 2,
+      "rotulo": "negativo",
+      "comentario": "Esperava mais, o tecido é fino demais.",
+      "conjunto": "teste"
+    },
+    {
+      "id": 208,
+      "nota": 4,
+      "rotulo": "positivo",
+      "comentario": "Nota dez para o atendimento da artesã.",
+      "conjunto": "teste"
+    },
+    {
+      "id": 209,
+      "nota": 3,
+      "rotulo": "neutro",
+      "comentario": "O produto é igual ao da foto, nada demais.",
+      "conjunto": "teste"
+    },
+    {
+      "id": 210,
+      "nota": 1,
+      "rotulo": "negativo",
+      "comentario": "Nunca mais compro, demorou quase dois meses.",
+      "conjunto": "teste"
+    },
+    {
+      "id": 211,
+      "nota": 5,
+      "rotulo": "positivo",
+      "comentario": "Que capricho! Dá vontade de comprar outra.",
+      "conjunto": "teste"
+    },
+    {
+      "id": 212,
+      "nota": 3,
+      "rotulo": "neutro",
+      "comentario": "Bonito, porém a alça é curta para mim.",
+      "conjunto": "teste"
+    }
+  ],
+  "conjuntos": {
+    "desenvolvimento": "as 24 primeiras: usadas enquanto o léxico era escrito, então o acerto nelas é otimista",
+    "teste": "as 12 últimas: escritas depois, com o léxico já congelado (commit b85937a), sem ajustar a regra a elas. É o número que vale"
+  }
+}
