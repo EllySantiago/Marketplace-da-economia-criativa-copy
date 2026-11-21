@@ -1,0 +1,33 @@
+# Evidência de banco de dados: pedido gravado de ponta a ponta
+# Gerado por backend/scripts/evidencias-u2.js em 2026-11-21T23:20:42.070Z
+# API: http://localhost:3333 · commit e09dfec
+Fluxo: o comprador de demonstração salva o carrinho e fecha um pedido pela API; depois, o banco é consultado.
+
+## Carrinho salvo no banco (PUT /carrinho → item_carrinho)
+  produto_id=4 | quantidade=1
+
+## POST /pedidos → HTTP 201
+{
+  "codigo": "PE-5070",
+  "status": "confirmado",
+  "subtotal": 450,
+  "frete": 0,
+  "total": 450,
+  "pagamento": {
+    "metodo": "pix",
+    "status": "aprovado",
+    "valor": 450,
+    "processadoEm": "2026-11-21T23:20:39.043Z"
+  }
+}
+
+## pedido
+  id=80 | codigo=PE-5070 | comprador_id=1 | status=confirmado | valor_total=450.00 | frete=0.00
+## item_pedido (preço gravado na hora da compra)
+  produto_id=4 | artesao_id=5 | quantidade=1 | preco_unitario=450.00 | subtotal=450.00
+## pagamento (simulado)
+  metodo=pix | status=aprovado | valor=450.00
+## Baixa de estoque do produto 4 (checkout seguro do FCCPD U1)
+  antes=7 depois=6
+## Carrinho esvaziado depois do pedido
+  itens=0

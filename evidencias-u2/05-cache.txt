@@ -1,0 +1,8 @@
+# Evidência do cache da vitrine
+# Gerado por backend/scripts/evidencias-u2.js em 2026-11-21T23:20:42.417Z
+# API: http://localhost:3333 · commit e09dfec
+A vitrine (GET /produtos) e os filtros ficam em memória por CACHE_TTL_MS. Criar pedido ou mexer em
+produto limpa o cache. O cabeçalho X-Cache diz de onde veio a resposta.
+
+  1ª chamada GET /produtos?categoria=Cerâmica → HTTP 200, X-Cache: MISS
+  2ª chamada GET /produtos?categoria=Cerâmica → HTTP 200, X-Cache: HIT
