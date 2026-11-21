@@ -346,6 +346,24 @@ entender e defender o código. O registro completo do projeto fica em
 
 Em todas: id inexistente = 404; falha ou mais de 2 s = 503 com `{"erro": ...}` (RF-08).
 
+### Como a aplicação Web usa o módulo
+
+O site do Origem não chama o módulo direto: ele pede à API (`backend/`), e a API chama estas rotas com o
+usuário do login no `X-Usuario-Id` e `X-Origem-Chamador: backend`. Por isso, no log, as chamadas do site
+aparecem com `quem_chamou: backend`.
+
+| Tela do site | Rota da API | Rota do módulo |
+|---|---|---|
+| Produto, "Peças relacionadas" | `GET /recomendacoes/produtos/{id}` | `/api/produtos/{id}/recomendados` |
+| Início, "Escolhidos para você" | `GET /recomendacoes/eu` | `/api/usuarios/{id}/recomendados` |
+| Produto, selo de sentimento nas avaliações | `GET /produtos/{id}/sentimento` | `/api/produtos/{id}/sentimento` |
+| Admin, "Classificação (IA)" | `GET /admin/classificacoes` | `/api/produtos/{id}/classificacao` |
+
+Se o módulo cair ou passar de 2 s, a API responde mesmo assim: as recomendações viram os mais vendidos e
+o sentimento e a classificação voltam como `fonte: "indisponivel"`. Evidências em
+[`evidencias-u2/`](../evidencias-u2/README.md) (`02-recomendacao.txt`, `04-sentimento-classificacao.txt`
+e `07-log-uso-ia-trecho.jsonl`).
+
 ### Métricas dos três modelos
 
 A interpretação está em [`METRICAS.md`](METRICAS.md), e os números completos em
