@@ -93,6 +93,15 @@ modelos e a interpretação delas (`metricas.py`, `METRICAS.md`), os conjuntos r
 e rótulos propostos pela IA e revisados pela equipe) e o README do módulo. As regras foram congeladas
 num commit antes de escrever os conjuntos de teste, para as métricas não serem otimistas.
 
+Ainda com o Claude Code, no fechamento da Web (U2): o repasse do sentimento e da classificação pela API
+(etapa E.6, `backend/src/services/analises.service.js`, com testes que sobem uma IA falsa), a troca da
+Fake API do frontend pelo backend real (etapa G: `apiFetch`, sessão por cookie, carrinho sincronizado
+com o servidor, painéis e as telas de sentimento e classificação), o roteiro de teste no navegador
+(`evidencias-u2/roteiro-navegador.mjs`, que achou dois defeitos corrigidos antes do PR), o script de
+coleta das evidências da U2 e a reescrita do README e de `docs/arquitetura.md`. A etapa G era da
+integrante de frontend; a decisão de o Everton assumi-la, pela falta de prazo, foi da equipe, assim
+como a revisão e o merge de cada pull request.
+
 ## 6. Outras ferramentas
 
 **ChatGPT, Gemini e GitHub Copilot** foram utilizados na entrega de FCCPD como apoio de

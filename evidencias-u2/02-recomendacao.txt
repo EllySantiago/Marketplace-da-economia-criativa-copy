@@ -1,0 +1,20 @@
+# Evidência de recomendação: módulo de IA consumido pela API
+# Gerado por backend/scripts/evidencias-u2.js em 2026-11-21T23:20:42.188Z
+# API: http://localhost:3333 · commit e09dfec
+O navegador pede à API; a API chama o módulo de IA (BentoML) com o usuário do LOGIN e troca os ids
+pelos produtos do banco. fonte=ia: veio do módulo; fonte=popularidade: a IA caiu ou passou de 2 s.
+
+## GET /recomendacoes/produtos/1 → HTTP 200, fonte=ia
+  5 Família de Bonecos do Alto do Moura · mesmo-artesao · score 6
+  9 Jarro Decorativo em Cerâmica Vidrada · mesmo-artesao · score 4
+  3 Caminho de Mesa em Renda Renascença · popularidade · score 0.72
+  4 Bolsa Sertaneja em Couro Cru · popularidade · score 0.72
+
+## GET /recomendacoes/eu (comprador@origem.com.br) → HTTP 200, fonte=ia
+  5 Família de Bonecos do Alto do Moura · historico-tecnica · score 3
+  9 Jarro Decorativo em Cerâmica Vidrada · historico-categoria · score 1
+  12 Toalha Bordada Casario do Recife · historico-categoria · score 1
+  2 Oratório São Francisco em Cedro · popularidade · score 0.52
+
+O lado do módulo de IA (cada chamada registrada com quem_chamou=backend) está em
+ia-recomendacao/logs/uso_dados.jsonl; o resumo do log sai com `just resumo` dentro de ia-recomendacao/.

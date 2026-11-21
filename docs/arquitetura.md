@@ -1,105 +1,76 @@
-# Arquitetura — Origem
+# Arquitetura — Origem (U2)
 
-> As seções 1 a 5 descrevem o frontend da Avaliação 1. A seção 6 descreve o backend da U2.
-> A versão completa (front, API, worker, IA e banco) vem no fechamento da U2 (`docs/plano-u2.md`, etapa L).
+O Origem é um marketplace de artesanato de Pernambuco em quatro peças: o **site** (Next.js), a **API**
+(Node/Express), o **módulo de IA** (Python/BentoML) e o **banco** (PostgreSQL). O site nunca fala com o
+banco nem com a IA: tudo passa pela API.
 
 ## 1. Visão geral
 
-O frontend do Origem é uma aplicação Next.js 15 (App Router) + TypeScript, organizada em
-camadas com responsabilidade única. Nenhuma página ou componente declara dados de produto,
-artesão, usuário ou pedido diretamente: tudo passa por uma **Fake API** assíncrona que simula
-o comportamento de um backend real (latência de rede incluída), preparando o terreno para a
-troca por uma API HTTP de verdade na Avaliação 2 sem reescrever a interface.
-
 ```
-app/                 rotas (Next.js App Router) — só compõem layout + componentes "inteligentes"
-components/
-  ui/                primitivos visuais sem regra de negócio (Button, Badge, Card, Input, Modal)
-  feedback/          LoadingState / ErrorState / EmptyState — os 3 estados obrigatórios de toda tela
-  layout/            Header, Footer, Sidebar, PublicLayout, AuthLayout
-  produto/ artesao/  componentes "inteligentes" de domínio: buscam dados via hooks e renderizam
-  carrinho/ pedido/  a UI (ex.: HomeView, CatalogView, ProductDetails, ArtisanProfile, CartView)
-  forms/             LoginForm, RegisterForm, ProductForm — usam hooks de domínio para validar/enviar
-hooks/               useProdutos, useArtesoes, useCarrinho, useAuth, usePedidos — ponte
-                     entre componentes e services, expondo { dado, carregando, erro }
-store/               estado global client-side (Zustand + persist/localStorage): cartStore, authStore
-services/api/        "Fake API": funções assíncronas que resolvem/rejeitam Promises após um delay
-mocks/                dados sintéticos (produtos, artesãos, usuários, pedidos) — a única fonte
-                     de dados "crus" do sistema; nunca são importados fora de services/
-types/               interfaces TypeScript compartilhadas (Produto, Artesao, Usuario, ItemCarrinho, Pedido...)
-constants/           listas fixas de domínio (regiões de PE, técnicas, categorias) e rotas
-utils/               formatadores puros (moeda, data, normalização de texto para busca)
+                         navegador
+                             │  https://<site>/api/...   (mesmo domínio: cookie de sessão SameSite=Lax, sem CORS)
+                             ▼
+  ┌──────────────────────────────────────────┐
+  │ Frontend Next.js (Vercel)                │  rewrite /api/:caminho → API_URL/:caminho
+  └───────────────────┬──────────────────────┘
+                      ▼
+  ┌──────────────────────────────────────────┐   HTTP, 2 s de limite    ┌──────────────────────────┐
+  │ API Node/Express (Render)                │ ───────────────────────▶ │ Módulo de IA (BentoML,   │
+  │ routes → controllers → services →        │  recomendação,           │ Render): recomendação,   │
+  │ repositories   · JWT em cookie httpOnly  │  sentimento, classific.  │ sentimento, classificação│
+  │ cache da vitrine · Swagger em /docs      │ ◀─ se cair: popularidade │ + log de uso dos dados   │
+  │ worker da fila (embutido em produção)    │    ou "indisponivel"     └────────────┬─────────────┘
+  └───────────────────┬──────────────────────┘                                       │ lê pelas funções
+                      │ Prisma + SQL puro (checkout, fila, busca)                     │ de acesso (dados.py)
+                      ▼                                                               ▼
+  ┌──────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ PostgreSQL (Neon): catálogo, usuários, carrinho, pedidos, pagamento, avaliações,            │
+  │ evento_assincrono (fila), notificacao, classificacao_produto                                │
+  └──────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Fluxo de uma tela típica
+| Peça | Responsabilidade | Onde |
+|---|---|---|
+| Frontend | telas, estado da tela (carrinho e usuário), chamadas à API | `frontend/` |
+| API | regras de negócio, autenticação e perfis, checkout seguro, cache, repasse da IA, documentação | `backend/src/` |
+| Worker | consome a fila `evento_assincrono` e grava as notificações do pedido | `backend/src/worker.js` (processo separado em dev, `WORKER_EMBUTIDO=true` em produção) |
+| Módulo de IA | recomendação por regras, sentimento por léxico, classificação por palavras-chave, log de uso | `ia-recomendacao/` |
+| Banco | dados do marketplace e a fila | `backend/sql/` (DDL da equipe + extensões da U2) |
+
+Por que cada serviço existe separado (e por que o resto não foi separado) está no relatório do FCCPD U2:
+[`fccpd-u2/RELATORIO.md`](../fccpd-u2/RELATORIO.md).
+
+## 2. Frontend
+
+Next.js 15 (App Router) + TypeScript, em camadas com uma responsabilidade cada:
 
 ```
 Página (app/.../page.tsx)
-   └─ Componente de domínio ("use client")         ex.: CatalogView
-        └─ hook (useProdutos/useCarrinho/...)       ex.: useProdutos(filtros)
-             └─ service (services/api/*.service.ts)  ex.: produtosService.filtrar(...)
-                  └─ delay() + mocks/*.mock.ts        ex.: produtosMock
+   └─ componente de domínio ("use client")          ex.: CatalogView, ProductReviews
+        └─ hook (hooks/*.ts)                          ex.: useProdutos(filtros) → { produtos, carregando, erro }
+             └─ service (services/api/*.service.ts)   ex.: produtosService.filtrar(...)
+                  └─ apiFetch (services/api/client.ts) → GET /api/produtos?busca=...
 ```
 
-O hook sempre expõe `{ dado, carregando, erro, recarregar? }`. O componente decide o que
-renderizar com base nesse estado — por isso toda tela que busca dados trata os 3 estados:
+- **`services/api/` é a única fronteira com a API.** Cada service tem as mesmas assinaturas da época da
+  Fake API (U1), por isso trocar os mocks pelo backend (etapa G) quase não mexeu nas telas.
+- **`apiFetch`** usa `NEXT_PUBLIC_API_URL` (padrão `/api`, o próprio site), envia o cookie com
+  `credentials: "include"` e transforma o erro do contrato (`{ erro, mensagem }`) em `ApiError`, cuja
+  mensagem vai direto para o `<ErrorState />`.
+- **Três estados em toda tela que busca dado:** carregando (`LoadingState`), erro (`ErrorState`) e vazio
+  (`EmptyState`).
+- **Estado global (Zustand):** `authStore` guarda só os dados do usuário (o token nunca fica no navegador);
+  `cartStore` é o carrinho da tela, com resposta imediata ao clique.
+- **Componentes sem desenho no layout raiz** (`components/layout/SessaoInicial.tsx`):
+  - confere a sessão ao abrir a página (`GET /auth/eu`; 401 limpa o usuário guardado);
+  - sincroniza o carrinho do comprador com o servidor: no login junta o carrinho do visitante com o salvo
+    (maior quantidade de cada produto), depois salva cada mudança em `PUT /carrinho` com 400 ms de espera.
+- **Opções de filtro** (regiões, categorias e técnicas) vêm de `GET /filtros`, com as listas fixas da U1
+  como valor inicial.
 
-- **Carregando** → `<LoadingState />` (skeletons de grade/lista)
-- **Erro** → `<ErrorState />` (mensagem + "Tentar novamente" quando aplicável)
-- **Vazio** → `<EmptyState />` (busca/filtro sem resultado, carrinho vazio, sem pedidos etc.)
+## 3. Backend (API)
 
-## 2. Fake API
-
-Cada arquivo em `services/api/` expõe funções assíncronas que:
-
-1. Leem/gravam num array em memória copiado de `mocks/*.mock.ts` (nunca o mock original —
-   isso permite simular criação de produtos e pedidos durante a sessão sem "vazar" mutações
-   para os dados semente).
-2. Resolvem via `delay()` (`services/api/client.ts`), que aplica 300–500 ms de latência
-   artificial — a UI portanto **precisa** tratar o estado de carregamento de verdade.
-3. Rejeitam com `ApiError` para as regras de negócio conhecidas (produto/artesão/pedido não
-   encontrado, credenciais inválidas, e-mail já cadastrado, estoque insuficiente no checkout),
-   permitindo que os hooks capturem `.catch()` e alimentem o `<ErrorState />`.
-
-Essa simulação de baixa estocagem no checkout (`produtosService.removerEstoque`) segue a
-mesma regra descrita na seção 7 do `docs/Origem_DDL.md` (baixa condicional, sem
-`SELECT` + `UPDATE` separados) — o objetivo é que a regra de negócio já nasça correta e só
-precise trocar de motor de persistência (memória → PostgreSQL) na Avaliação 2.
-
-## 3. Estado global
-
-- **`store/cartStore.ts`** — Zustand com `persist` (localStorage, chave `origem:carrinho`).
-  O carrinho sobrevive a um recarregamento de página, mas é 100% client-side.
-- **`store/authStore.ts`** — Zustand com `persist` (localStorage, chave `origem:sessao`).
-  Guarda o `Usuario` autenticado (comprador, artesão ou administrador) simulando uma sessão,
-  sem token/JWT real — isso é assumido conscientemente como simplificação da Avaliação 1.
-
-Nenhum componente acessa esses stores diretamente: sempre por meio de `useCarrinho()` e
-`useAuth()`, para que a troca por uma sessão real (cookies HTTP-only, JWT, etc.) na
-Avaliação 2 fique isolada nesses dois hooks.
-
-## 4. Limitações conhecidas (Avaliação 1 → Avaliação 2)
-
-| Limitação atual | Solução prevista na Avaliação 2 |
-|---|---|
-| Dados voltam ao estado inicial a cada `npm run build`/reinício do servidor (arrays em memória) | Persistência real em PostgreSQL, seguindo o DDL em `docs/Origem_DDL.md` |
-| Login sem hash de senha, senha de demonstração única (`origem123`) | Hash (bcrypt/argon2) + JWT/refresh token no backend Node/Express |
-| Sem upload real de imagem (produto novo usa uma URL informada manualmente) | Upload para storage (S3/Cloudflare R2) com fila assíncrona (`evento_assincrono`) |
-| Recomendação por similaridade de atributos (técnica/artesão/região) | Modelo de recomendação real (`recomendacao_log`), possivelmente com IA |
-| Sem paginação (listas pequenas o suficiente para uma Fake API) | Paginação via cursor/offset nos endpoints REST |
-
-## 5. Por que essa divisão em camadas
-
-- **Componentes de página nunca importam `mocks/`** — só `services/`. Isso é o que garante
-  "zero hardcoded": trocar a Fake API por `fetch("/api/...")` não exige tocar em nenhuma tela.
-- **Hooks isolam estado de I/O (carregando/erro) da lógica de apresentação** — um componente
-  nunca escreve `useState` + `useEffect` + `fetch` manualmente; ele consome um hook de domínio.
-- **`types/` é o contrato único** entre mocks, services, hooks e componentes — qualquer
-  divergência de forma dos dados quebra a compilação (`strict: true`, sem `any`).
-
-## 6. Backend (U2)
-
-Node/Express + PostgreSQL, em `backend/`, organizado nas camadas pedidas na disciplina de Web:
+Node/Express + PostgreSQL, nas camadas pedidas na disciplina de Web:
 
 ```
 requisição → routes → (middlewares de autenticação) → controller → service → repository → banco
@@ -114,12 +85,65 @@ requisição → routes → (middlewares de autenticação) → controller → s
 | `controllers/` | lê e valida a requisição, monta a resposta HTTP | filtro `"Todas"` é ignorado; `artesaoId` precisa ser número |
 | `services/` | regras de negócio | só produto ativo de artesão aprovado aparece na vitrine |
 | `repositories/` | acesso ao banco | `prisma.produto.findMany(...)` |
-| `utils/mapeadores/` | registro do banco → objeto da API | `BigInt`/`Decimal` → `number`, nomes em camelCase |
+| `utils/` | mapeadores banco → API, validação, cache, cliente do módulo de IA | `utils/modulo-ia.js` |
 
-**Prisma e SQL puro convivem de propósito.** O Prisma faz as consultas comuns. O SQL puro (driver `pg`)
-fica onde o Prisma não alcança: o checkout seguro (`UPDATE` condicional atômico e ordem anti-deadlock)
-e a fila (`FOR UPDATE SKIP LOCKED`), que são a entrega do FCCPD U1, e a busca sem acento (`unaccent`).
-O schema do banco continua sendo o SQL da equipe; o `prisma/schema.prisma` é gerado dele.
+**Prisma e SQL puro convivem de propósito.** O Prisma faz as consultas comuns. O SQL puro fica onde o
+Prisma não alcança: o checkout seguro (`UPDATE` condicional atômico e ordem anti-deadlock) e a fila
+(`FOR UPDATE SKIP LOCKED`), que são a entrega do FCCPD U1, e a busca sem acento (`unaccent`). O schema
+continua sendo o SQL da equipe; o `prisma/schema.prisma` é gerado dele. Passo a passo para criar uma
+rota: [`backend/README.md`](../backend/README.md). Contrato completo: [`api.md`](api.md) e o Swagger em `/docs`.
 
-Detalhes e o passo a passo para criar uma rota: [`backend/README.md`](../backend/README.md).
+### Autenticação e perfis
 
+- Login e cadastro devolvem um JWT (8 h) e gravam o mesmo token no cookie `origem_sessao`
+  (`HttpOnly`, `SameSite=Lax`, `Secure` em produção). O navegador usa o cookie; testes e scripts usam
+  `Authorization: Bearer`.
+- Senhas com bcrypt. A cada requisição o usuário é recarregado do banco: o perfil do token não é confiado.
+- Três perfis: comprador e artesão se cadastram (artesão nasce pendente até o admin aprovar);
+  administrador é conta interna.
+
+### Pontos de desempenho e concorrência
+
+| Onde | O quê |
+|---|---|
+| `POST /pedidos` | checkout seguro do FCCPD U1: baixa de estoque condicional, ordenada por produto, numa transação com o pedido, o pagamento e os eventos da fila |
+| `GET /produtos`, `GET /filtros` | cache em memória (`CACHE_TTL_MS`, 30 s), `X-Cache: HIT/MISS`, limpo ao mexer em produto ou pedido. Medido: ~3,8× mais requisições por segundo |
+| Fila | pedido grava os avisos na mesma transação (transactional outbox); o worker processa com `SKIP LOCKED`, retentativas e dead-letter |
+
+## 4. Módulo de IA e a integração com a Web
+
+O módulo (`ia-recomendacao/`, BentoML na porta 3001) lê o Postgres só pelas funções de acesso de
+`dados.py` (com um retrato JSON quando o banco está fora) e registra cada uso dos dados em
+`logs/uso_dados.jsonl`. Detalhes, métricas e o log: [README do módulo](../ia-recomendacao/README.md).
+
+Os três modelos chegam ao site pelo mesmo caminho, **navegador → API → IA**:
+
+| Tela | Rota da API | Rota do módulo | Se a IA cair ou passar de 2 s |
+|---|---|---|---|
+| Produto: "Peças relacionadas" | `GET /recomendacoes/produtos/:id` | `/api/produtos/:id/recomendados` | mais vendidos (`fonte: popularidade`) |
+| Início: "Escolhidos para você" | `GET /recomendacoes/eu` | `/api/usuarios/:id/recomendados` | mais vendidos |
+| Produto: sentimento das avaliações | `GET /produtos/:id/sentimento` | `/api/produtos/:id/sentimento` | o selo some (`fonte: indisponivel`) |
+| Admin: classificação automática | `GET /admin/classificacoes` | `/api/produtos/:id/classificacao` | aviso no painel |
+
+Passar pela API, e não chamar a IA direto do navegador, garante três coisas: o usuário vem do login (e
+não de um cabeçalho que o navegador pode forjar), os dados exibidos (preço, estoque) são os do banco na
+hora, e o site nunca quebra por causa da IA. Toda chamada aparece no log de uso com `quem_chamou: backend`.
+
+## 5. Implantação
+
+Banco no Neon, API e IA no Render (`render.yaml`), site na Vercel. Tudo que depende do provedor está em
+variáveis de ambiente (`DATABASE_URL`, `JWT_SECRET`, `RECOMENDACAO_URL`, `CORS_ORIGEM`, `WORKER_EMBUTIDO`,
+`API_URL`). Passo a passo e restrições do plano gratuito: [`deploy.md`](deploy.md).
+
+## 6. Decisões e limitações
+
+| Decisão | Por quê |
+|---|---|
+| Rewrite `/api` no Next em vez de chamar a API em outro domínio | cookie do mesmo site (`SameSite=Lax` basta) e nenhum CORS no navegador; em dev o rewrite aponta para `localhost:3333` |
+| Carrinho salvo no banco só para comprador logado | visitante compra sem conta até o checkout; o carrinho dele vai para o servidor no login |
+| Worker dentro da API em produção | o Render não tem worker gratuito; localmente ele roda em processo separado, como na U1 |
+| IA por regras, sem treino | a disciplina pede dados, funções de acesso e log, não modelo treinado; as regras foram congeladas antes dos conjuntos de teste |
+
+Limitações conhecidas: sem upload real de imagem (o produto recebe uma URL), sem paginação (catálogo
+pequeno), pagamento simulado, e o serviço gratuito do Render dorme depois de 15 min sem uso (o primeiro
+acesso leva cerca de 1 min; a recomendação cai para popularidade enquanto a IA acorda).

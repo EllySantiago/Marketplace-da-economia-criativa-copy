@@ -14,7 +14,8 @@
     "teste:concorrencia": "node testes/teste-concorrencia.js",
     "teste:deadlock": "node testes/teste-deadlock.js",
     "teste:fila": "node testes/teste-fila.js",
-    "evidencias": "bash testes/gerar-evidencias.sh"
+    "evidencias": "bash testes/gerar-evidencias.sh",
+    "evidencias:u2": "node scripts/evidencias-u2.js"
   },
   "dependencies": {
     "@prisma/client": "6.19.3",

@@ -1,0 +1,44 @@
+# Evidência dos outros dois modelos da IA consumidos pela API
+# Gerado por backend/scripts/evidencias-u2.js em 2026-11-21T23:20:42.411Z
+# API: http://localhost:3333 · commit e09dfec
+## GET /produtos/1/sentimento → HTTP 200, fonte=ia
+{
+  "resumo": {
+    "total": 2,
+    "porRotulo": {
+      "positivo": 2,
+      "neutro": 0,
+      "negativo": 0
+    },
+    "rotuloGeral": "positivo",
+    "pontuacaoMedia": 2.75
+  },
+  "avaliacoes": [
+    {
+      "id": 1,
+      "sentimento": "positivo",
+      "pontuacao": 4.5
+    },
+    {
+      "id": 2,
+      "sentimento": "positivo",
+      "pontuacao": 1
+    }
+  ],
+  "modelo": "lexico-origem-u2"
+}
+
+## GET /admin/classificacoes → HTTP 200, fonte=ia, 13 produtos
+  11 Bolsa de Crochê Maré do Pilar · cadastrada=Renda · sugerida=Renda · confiança=0.625 · aprovado
+  1 Cangaceiro de Barro — Lampião e Maria Bonita · cadastrada=Cerâmica · sugerida=Cerâmica · confiança=1 · aprovado
+  2 Oratório São Francisco em Cedro · cadastrada=Madeira · sugerida=Madeira · confiança=1 · aprovado
+  3 Caminho de Mesa em Renda Renascença · cadastrada=Renda · sugerida=Renda · confiança=1 · aprovado
+  4 Bolsa Sertaneja em Couro Cru · cadastrada=Couro · sugerida=Couro · confiança=1 · aprovado
+  5 Família de Bonecos do Alto do Moura · cadastrada=Cerâmica · sugerida=Cerâmica · confiança=1 · aprovado
+  6 Escultura Cabra do Sertão em Madeira · cadastrada=Madeira · sugerida=Madeira · confiança=1 · aprovado
+  7 Toalha de Altar em Renda de Bilro · cadastrada=Renda · sugerida=Renda · confiança=1 · aprovado
+  8 Cinto de Vaqueiro em Couro Trançado · cadastrada=Couro · sugerida=Couro · confiança=1 · aprovado
+  9 Jarro Decorativo em Cerâmica Vidrada · cadastrada=Cerâmica · sugerida=Cerâmica · confiança=1 · aprovado
+  10 Painel Entalhado Cordel do Sertão · cadastrada=Madeira · sugerida=Madeira · confiança=1 · aprovado
+  12 Toalha Bordada Casario do Recife · cadastrada=Renda · sugerida=Renda · confiança=1 · aprovado
+  13 Peixe Decorativo em Madeira Reaproveitada · cadastrada=Madeira · sugerida=Madeira · confiança=1 · aprovado

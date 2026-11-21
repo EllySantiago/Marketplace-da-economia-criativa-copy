@@ -1,0 +1,52 @@
+OK   vitrine carrega do backend
+OK   busca vai para a API
+OK   selo de sentimento da IA no produto — Sentimento dos comentários:
+POSITIVA
+2 positiva(s) · 0 neutra(s) · 0 negativa(s), pela análise automática do Origem
+OK   recomendações pela API
+OK   login do comprador
+OK   carrinho salvo no servidor depois do login — [[7,1]]
+OK   sessão em cookie httpOnly
+OK   token não fica no localStorage
+OK   sessão conferida ao recarregar
+OK   'Escolhidos para você' pela API
+OK   pedido criado pela API — PE-5071 status=confirmado total=295.9
+OK   pedido aparece em Meus pedidos
+OK   painel do artesão com indicadores da API
+OK   cadastro de artesão com região
+OK   admin vê o cadastro pendente
+OK   admin com indicadores da API
+OK   classificação da IA no admin — 13 produtos
+OK   sem erro de JavaScript na página
+
+Chamadas à API:
+GET /api/produtos 200
+GET /api/artesoes 200
+GET /api/filtros 200
+GET /api/produtos?busca=ceramica 200
+GET /api/produtos/1 200
+GET /api/produtos/1/avaliacoes 200
+GET /api/artesoes/2 200
+GET /api/produtos/1/sentimento 200
+GET /api/recomendacoes/produtos/1?limite=3 200
+GET /api/produtos/7 200
+GET /api/produtos/7/avaliacoes 200
+GET /api/artesoes/4 200
+GET /api/produtos/7/sentimento 200
+GET /api/recomendacoes/produtos/7?limite=3 200
+POST /api/auth/login 200
+GET /api/auth/eu 200
+GET /api/carrinho 200
+PUT /api/carrinho 200
+GET /api/recomendacoes/eu?limite=4 200
+POST /api/carrinho/validar 200
+POST /api/pedidos 201
+GET /api/pedidos/PE-5071 200
+GET /api/pedidos 200
+POST /api/auth/sair 204
+GET /api/artesoes/eu/indicadores 200
+GET /api/produtos?artesaoId=2 200
+POST /api/auth/registrar 201
+GET /api/admin/indicadores 200
+GET /api/admin/artesoes/pendentes 200
+GET /api/admin/classificacoes 200

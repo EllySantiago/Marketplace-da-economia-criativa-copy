@@ -1,0 +1,17 @@
+# Evidência de processamento assíncrono: fila de notificações do pedido
+# Gerado por backend/scripts/evidencias-u2.js em 2026-11-21T23:20:42.078Z
+# API: http://localhost:3333 · commit e09dfec
+O mesmo pedido (PE-5070) enfileira um aviso para o comprador e um para cada artesã, na MESMA transação
+do pedido (transactional outbox). O worker (embutido na API em produção, WORKER_EMBUTIDO=true)
+consome a fila com FOR UPDATE SKIP LOCKED e grava as notificações.
+
+## evento_assincrono (a fila) — eventos deste pedido
+  id=150 | tipo=notificar_pedido | status=processado | tentativas=1 | papel=comprador | usuario=1 | criado_em=2026-11-21 23:20:39.04396 UTC | processado_em=2026-11-21 23:20:39.54295 UTC
+  id=151 | tipo=notificar_pedido | status=processado | tentativas=1 | papel=artesao | usuario=5 | criado_em=2026-11-21 23:20:39.04396 UTC | processado_em=2026-11-21 23:20:39.697309 UTC
+
+## notificacao — gravadas pelo worker
+  usuario_id=1 | tipo=pedido_confirmado_comprador | mensagem=Seu pedido PE-5070 foi confirmado. Total: R$ 450.00. | criado_em=2026-11-21 23:20:39.541067 UTC
+  usuario_id=5 | tipo=pedido_confirmado_artesao | mensagem=Você recebeu uma nova venda no pedido PE-5070. | criado_em=2026-11-21 23:20:39.695541 UTC
+
+## Situação geral da fila
+  status=processado | total=10

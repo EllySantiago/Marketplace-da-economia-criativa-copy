@@ -1,0 +1,6 @@
+{"data_hora": "2026-11-21T20:20:57-03:00", "funcao": "sentimento_do_produto", "quem_chamou": "backend", "parametros": {"produto_id": 1}, "fonte": "banco", "resultado": "sucesso", "registros": 2, "ids": [1, 2], "duracao_ms": 17.1}
+{"data_hora": "2026-11-21T20:20:57-03:00", "funcao": "listar_avaliacoes", "quem_chamou": "backend", "parametros": {"produto_id": 1}, "fonte": "banco", "resultado": "sucesso", "registros": 2, "ids": [1, 2], "duracao_ms": 19.3}
+{"data_hora": "2026-11-21T20:20:57-03:00", "funcao": "sentimento_do_produto", "quem_chamou": "backend", "parametros": {"produto_id": 1}, "fonte": "banco", "resultado": "sucesso", "registros": 2, "ids": [1, 2], "duracao_ms": 20.8}
+{"data_hora": "2026-11-21T20:20:57-03:00", "funcao": "buscar_produto", "quem_chamou": "backend", "parametros": {"produto_id": 1}, "fonte": "banco", "resultado": "sucesso", "registros": 1, "ids": [1], "duracao_ms": 23.1}
+{"data_hora": "2026-11-21T20:20:57-03:00", "funcao": "listar_produtos", "quem_chamou": "backend", "parametros": {}, "fonte": "banco", "resultado": "sucesso", "registros": 13, "duracao_ms": 18.9}
+{"data_hora": "2026-11-21T20:20:57-03:00", "funcao": "recomendar_por_produto", "quem_chamou": "backend", "parametros": {"produto_id": 1, "limite": 3}, "fonte": "banco", "resultado": "sucesso", "registros": 3, "ids": [5, 9, 3], "duracao_ms": 43.5}
