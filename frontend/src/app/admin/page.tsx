@@ -64,60 +64,6 @@ export default function AdminPage() {
     return (
       <main className="mx-auto max-w-[600px] px-6 py-20">
         <EmptyState titulo="Área exclusiva da administração" mensagem="Entre com uma conta de administrador para acessar o painel." acaoHref={ROTAS.login} acaoLabel="Entrar" />
-        {secao === "classificacao" && (
-          <section>
-            <h1 className="font-display mb-2 text-3xl">Classificação automática</h1>
-            <p className="mb-6 max-w-[720px] text-sm text-[#888]">
-              O módulo de IA lê o nome e a descrição de cada peça e sugere uma categoria. As que não batem com a categoria cadastrada, ou com confiança baixa, aparecem primeiro para revisão.
-            </p>
-            {classificacao.carregando && <LoadingState variante="lista" itens={4} />}
-            {!classificacao.carregando && classificacao.erro && <ErrorState mensagem={classificacao.erro} onTentarNovamente={classificacao.recarregar} />}
-            {!classificacao.carregando && !classificacao.erro && classificacao.indisponivel && (
-              <ErrorState titulo="Classificação indisponível" mensagem="O módulo de IA não respondeu. Tente de novo em alguns instantes." onTentarNovamente={classificacao.recarregar} />
-            )}
-            {!classificacao.carregando && !classificacao.erro && !classificacao.indisponivel && classificacao.itens.length === 0 && <EmptyState titulo="Nenhum produto na vitrine" />}
-            {!classificacao.carregando && classificacao.itens.length > 0 && (
-              <div className="overflow-x-auto bg-white">
-                <table className="w-full">
-                  <thead>
-                    <tr className="table-row">
-                      <th>Produto</th>
-                      <th>Categoria cadastrada</th>
-                      <th>Sugerida pela IA</th>
-                      <th>Confiança</th>
-                      <th>Situação</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {classificacao.itens.map((item) => (
-                      <tr key={item.produtoId} className="table-row">
-                        <td>
-                          <Link href={ROTAS.produto(item.produtoId)} className="hover:text-terracotta">
-                            {item.nome}
-                            <span className="block text-xs text-[#888]">{item.artesao}</span>
-                          </Link>
-                        </td>
-                        <td>{item.categoriaAtual}</td>
-                        <td>
-                          {item.classe}
-                          {item.palavras.length > 0 && <span className="block text-xs text-[#888]">{item.palavras.slice(0, 3).join(", ")}</span>}
-                        </td>
-                        <td>{Math.round(item.confianca * 100)}%</td>
-                        <td>
-                          {item.status === "revisao" ? (
-                            <span className="rounded-sm bg-[#FEF3C7] px-2 py-1 text-xs font-bold text-[#92400E]">Revisar</span>
-                          ) : (
-                            <span className="rounded-sm bg-[#D8F3DC] px-2 py-1 text-xs font-bold text-green">Confere</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </section>
-        )}
       </main>
     );
   }
@@ -262,6 +208,60 @@ export default function AdminPage() {
                           <OrderStatus status={pedido.status} />
                         </td>
                         <td>{formatCurrency(pedido.total)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+        )}
+        {secao === "classificacao" && (
+          <section>
+            <h1 className="font-display mb-2 text-3xl">Classificação automática</h1>
+            <p className="mb-6 max-w-[720px] text-sm text-[#888]">
+              O módulo de IA lê o nome e a descrição de cada peça e sugere uma categoria. As que não batem com a categoria cadastrada, ou com confiança baixa, aparecem primeiro para revisão.
+            </p>
+            {classificacao.carregando && <LoadingState variante="lista" itens={4} />}
+            {!classificacao.carregando && classificacao.erro && <ErrorState mensagem={classificacao.erro} onTentarNovamente={classificacao.recarregar} />}
+            {!classificacao.carregando && !classificacao.erro && classificacao.indisponivel && (
+              <ErrorState titulo="Classificação indisponível" mensagem="O módulo de IA não respondeu. Tente de novo em alguns instantes." onTentarNovamente={classificacao.recarregar} />
+            )}
+            {!classificacao.carregando && !classificacao.erro && !classificacao.indisponivel && classificacao.itens.length === 0 && <EmptyState titulo="Nenhum produto na vitrine" />}
+            {!classificacao.carregando && classificacao.itens.length > 0 && (
+              <div className="overflow-x-auto bg-white">
+                <table className="w-full">
+                  <thead>
+                    <tr className="table-row">
+                      <th>Produto</th>
+                      <th>Categoria cadastrada</th>
+                      <th>Sugerida pela IA</th>
+                      <th>Confiança</th>
+                      <th>Situação</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {classificacao.itens.map((item) => (
+                      <tr key={item.produtoId} className="table-row">
+                        <td>
+                          <Link href={ROTAS.produto(item.produtoId)} className="hover:text-terracotta">
+                            {item.nome}
+                            <span className="block text-xs text-[#888]">{item.artesao}</span>
+                          </Link>
+                        </td>
+                        <td>{item.categoriaAtual}</td>
+                        <td>
+                          {item.classe}
+                          {item.palavras.length > 0 && <span className="block text-xs text-[#888]">{item.palavras.slice(0, 3).join(", ")}</span>}
+                        </td>
+                        <td>{Math.round(item.confianca * 100)}%</td>
+                        <td>
+                          {item.status === "revisao" ? (
+                            <span className="rounded-sm bg-[#FEF3C7] px-2 py-1 text-xs font-bold text-[#92400E]">Revisar</span>
+                          ) : (
+                            <span className="rounded-sm bg-[#D8F3DC] px-2 py-1 text-xs font-bold text-green">Confere</span>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

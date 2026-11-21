@@ -32,6 +32,12 @@ export function useArtesao(id: number) {
   const [erro, setErro] = useState<string | null>(null);
 
   useEffect(() => {
+    // Id ainda desconhecido (ex.: produto ou usuário carregando): espera, sem chamar a API.
+    if (!(id > 0)) {
+      setArtesao(null);
+      setCarregando(false);
+      return;
+    }
     let ativo = true;
     setCarregando(true);
     setErro(null);
