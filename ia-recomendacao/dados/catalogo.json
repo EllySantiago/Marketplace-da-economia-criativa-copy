@@ -1,176 +1,337 @@
 {
+  "exportadoEm": "2026-11-20T15:44:44+00:00",
+  "origem": "PostgreSQL do backend (backend/sql/02_seed.sql), via dados.py",
   "produtos": [
     {
       "id": 1,
       "nome": "Cangaceiro de Barro — Lampião e Maria Bonita",
-      "preco": 285,
+      "preco": 285.0,
       "imagem": "https://images.unsplash.com/photo-1641338215253-9e9c8cf48a5a?w=800&h=800&fit=crop&auto=format",
       "categoria": "Cerâmica",
       "tecnica": "Cerâmica",
       "regiao": "Agreste",
       "artesao": "Maria das Graças Silva",
-      "artesaoId": 1,
+      "artesaoId": 2,
+      "artesaoAprovado": true,
       "estoque": 3,
       "status": "ativo",
-      "vendas": 42,
+      "vendas": 2,
       "notaMedia": 4.5
     },
     {
       "id": 2,
       "nome": "Oratório São Francisco em Cedro",
-      "preco": 620,
+      "preco": 620.0,
       "imagem": "https://images.unsplash.com/photo-1655138493602-49901f93d250?w=800&h=800&fit=crop&auto=format",
       "categoria": "Madeira",
       "tecnica": "Entalhamento em Madeira",
       "regiao": "Zona da Mata",
       "artesao": "João Ferreira Neto",
-      "artesaoId": 2,
+      "artesaoId": 3,
+      "artesaoAprovado": true,
       "estoque": 2,
       "status": "ativo",
-      "vendas": 18,
-      "notaMedia": 4
+      "vendas": 2,
+      "notaMedia": 4.0
     },
     {
       "id": 3,
       "nome": "Caminho de Mesa em Renda Renascença",
-      "preco": 380,
+      "preco": 380.0,
       "imagem": "https://images.unsplash.com/photo-1628006025173-7c5558fa97c1?w=800&h=800&fit=crop&auto=format",
       "categoria": "Renda",
       "tecnica": "Renda Renascença",
       "regiao": "RMR",
       "artesao": "Ana Luíza Rodrigues",
-      "artesaoId": 3,
+      "artesaoId": 4,
+      "artesaoAprovado": true,
       "estoque": 5,
       "status": "ativo",
-      "vendas": 35,
-      "notaMedia": 5
+      "vendas": 3,
+      "notaMedia": 5.0
     },
     {
       "id": 4,
       "nome": "Bolsa Sertaneja em Couro Cru",
-      "preco": 450,
+      "preco": 450.0,
       "imagem": "https://images.unsplash.com/photo-1603219527847-24c87f552a77?w=800&h=800&fit=crop&auto=format",
       "categoria": "Couro",
       "tecnica": "Couro Cru",
       "regiao": "Sertão",
       "artesao": "Sebastião Mendes",
-      "artesaoId": 4,
+      "artesaoId": 5,
+      "artesaoAprovado": true,
       "estoque": 7,
       "status": "ativo",
-      "vendas": 27,
-      "notaMedia": 5
+      "vendas": 2,
+      "notaMedia": 5.0
     },
     {
       "id": 5,
       "nome": "Família de Bonecos do Alto do Moura",
-      "preco": 195,
+      "preco": 195.0,
       "imagem": "https://images.unsplash.com/photo-1786507244330-6ad954c96ef9?w=800&h=800&fit=crop&auto=format",
       "categoria": "Cerâmica",
       "tecnica": "Cerâmica",
       "regiao": "Agreste",
       "artesao": "Maria das Graças Silva",
-      "artesaoId": 1,
+      "artesaoId": 2,
+      "artesaoAprovado": true,
       "estoque": 6,
       "status": "ativo",
-      "vendas": 22,
-      "notaMedia": 0
+      "vendas": 0,
+      "notaMedia": 0.0
     },
     {
       "id": 6,
       "nome": "Escultura Cabra do Sertão em Madeira",
-      "preco": 340,
+      "preco": 340.0,
       "imagem": "https://images.unsplash.com/photo-1721508490084-1b1de5b230d4?w=800&h=800&fit=crop&auto=format",
       "categoria": "Madeira",
       "tecnica": "Entalhamento em Madeira",
       "regiao": "Zona da Mata",
       "artesao": "João Ferreira Neto",
-      "artesaoId": 2,
+      "artesaoId": 3,
+      "artesaoAprovado": true,
       "estoque": 4,
       "status": "ativo",
-      "vendas": 9,
-      "notaMedia": 0
+      "vendas": 1,
+      "notaMedia": 0.0
     },
     {
       "id": 7,
       "nome": "Toalha de Altar em Renda de Bilro",
-      "preco": 260,
+      "preco": 260.0,
       "imagem": "https://images.unsplash.com/photo-1655149238677-9b5cb1a0afc6?w=800&h=800&fit=crop&auto=format",
       "categoria": "Renda",
       "tecnica": "Renda Renascença",
       "regiao": "RMR",
       "artesao": "Ana Luíza Rodrigues",
-      "artesaoId": 3,
+      "artesaoId": 4,
+      "artesaoAprovado": true,
       "estoque": 8,
       "status": "ativo",
-      "vendas": 15,
-      "notaMedia": 0
+      "vendas": 0,
+      "notaMedia": 0.0
     },
     {
       "id": 8,
       "nome": "Cinto de Vaqueiro em Couro Trançado",
-      "preco": 165,
+      "preco": 165.0,
       "imagem": "https://images.unsplash.com/photo-1599694522028-65abc96dfd2f?w=800&h=800&fit=crop&auto=format",
       "categoria": "Couro",
       "tecnica": "Couro Cru",
       "regiao": "Sertão",
       "artesao": "Sebastião Mendes",
-      "artesaoId": 4,
+      "artesaoId": 5,
+      "artesaoAprovado": true,
       "estoque": 0,
       "status": "ativo",
-      "vendas": 31,
-      "notaMedia": 0
+      "vendas": 0,
+      "notaMedia": 0.0
     },
     {
       "id": 9,
       "nome": "Jarro Decorativo em Cerâmica Vidrada",
-      "preco": 210,
+      "preco": 210.0,
       "imagem": "https://images.unsplash.com/photo-1786507244330-6ad954c96ef9?w=800&h=800&fit=crop&auto=format",
       "categoria": "Cerâmica",
       "tecnica": "Barro Cozido",
       "regiao": "Agreste",
       "artesao": "Maria das Graças Silva",
-      "artesaoId": 1,
+      "artesaoId": 2,
+      "artesaoAprovado": true,
       "estoque": 5,
       "status": "ativo",
-      "vendas": 12,
-      "notaMedia": 0
+      "vendas": 1,
+      "notaMedia": 3.0
     },
     {
       "id": 10,
       "nome": "Painel Entalhado Cordel do Sertão",
-      "preco": 480,
+      "preco": 480.0,
       "imagem": "https://images.unsplash.com/photo-1721508490084-1b1de5b230d4?w=800&h=800&fit=crop&auto=format",
       "categoria": "Madeira",
       "tecnica": "Entalhamento em Madeira",
       "regiao": "Zona da Mata",
       "artesao": "João Ferreira Neto",
-      "artesaoId": 2,
+      "artesaoId": 3,
+      "artesaoAprovado": true,
       "estoque": 3,
       "status": "ativo",
-      "vendas": 6,
-      "notaMedia": 0
+      "vendas": 0,
+      "notaMedia": 0.0
     },
     {
       "id": 11,
-      "nome": "Jarro de Barro Pintado (fora de linha)",
-      "preco": 150,
-      "imagem": "https://images.unsplash.com/photo-1641338215253-9e9c8cf48a5a?w=800&h=800&fit=crop&auto=format",
-      "categoria": "Cerâmica",
-      "tecnica": "Cerâmica",
-      "regiao": "Agreste",
-      "artesao": "Maria das Graças Silva",
-      "artesaoId": 1,
+      "nome": "Bolsa de Crochê Maré do Pilar",
+      "preco": 145.0,
+      "imagem": "https://images.unsplash.com/photo-1655149238677-9b5cb1a0afc6?w=800&h=800&fit=crop&auto=format",
+      "categoria": "Renda",
+      "tecnica": "Crochê",
+      "regiao": "RMR",
+      "artesao": "Severina Cavalcanti",
+      "artesaoId": 12,
+      "artesaoAprovado": true,
+      "estoque": 6,
+      "status": "ativo",
+      "vendas": 3,
+      "notaMedia": 5.0
+    },
+    {
+      "id": 12,
+      "nome": "Toalha Bordada Casario do Recife",
+      "preco": 230.0,
+      "imagem": "https://images.unsplash.com/photo-1628006025173-7c5558fa97c1?w=800&h=800&fit=crop&auto=format",
+      "categoria": "Renda",
+      "tecnica": "Bordado",
+      "regiao": "RMR",
+      "artesao": "Severina Cavalcanti",
+      "artesaoId": 12,
+      "artesaoAprovado": true,
       "estoque": 4,
-      "status": "inativo",
-      "vendas": 20,
-      "notaMedia": 0
+      "status": "ativo",
+      "vendas": 1,
+      "notaMedia": 2.0
+    },
+    {
+      "id": 13,
+      "nome": "Peixe Decorativo em Madeira Reaproveitada",
+      "preco": 120.0,
+      "imagem": "https://images.unsplash.com/photo-1721508490084-1b1de5b230d4?w=800&h=800&fit=crop&auto=format",
+      "categoria": "Madeira",
+      "tecnica": "Pintura Natural",
+      "regiao": "RMR",
+      "artesao": "Severina Cavalcanti",
+      "artesaoId": 12,
+      "artesaoAprovado": true,
+      "estoque": 5,
+      "status": "ativo",
+      "vendas": 0,
+      "notaMedia": 0.0
     }
+  ],
+  "usuarios": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13
+  ],
+  "compradores": [
+    1,
+    7,
+    8,
+    9,
+    10,
+    11,
+    13
   ],
   "historico": {
     "1": [
+      3,
       1,
       4,
-      3
+      11
+    ],
+    "7": [
+      2
+    ],
+    "8": [
+      1,
+      9
+    ],
+    "9": [
+      3,
+      11
+    ],
+    "10": [
+      4,
+      12
+    ],
+    "11": [
+      2,
+      6
+    ]
+  },
+  "avaliacoes": {
+    "1": [
+      {
+        "id": 1,
+        "produtoId": 1,
+        "nota": 5,
+        "comentario": "Peça linda, chegou muito bem embalada e com certificado de autenticidade.",
+        "criadoEm": "2026-08-22T10:00:00"
+      },
+      {
+        "id": 2,
+        "produtoId": 1,
+        "nota": 4,
+        "comentario": "Muito bonita, só achei o prazo de entrega um pouco longo.",
+        "criadoEm": "2026-08-15T14:20:00"
+      }
+    ],
+    "2": [
+      {
+        "id": 5,
+        "produtoId": 2,
+        "nota": 4,
+        "comentario": "Entalhe impressionante, ficou perfeito na sala.",
+        "criadoEm": "2026-07-25T11:15:00"
+      }
+    ],
+    "3": [
+      {
+        "id": 3,
+        "produtoId": 3,
+        "nota": 5,
+        "comentario": "A renda é impecável, dá pra ver o cuidado artesanal em cada detalhe.",
+        "criadoEm": "2026-08-10T09:30:00"
+      }
+    ],
+    "4": [
+      {
+        "id": 4,
+        "produtoId": 4,
+        "nota": 5,
+        "comentario": "Couro de altíssima qualidade, uso todo dia e já recebi vários elogios.",
+        "criadoEm": "2026-07-30T18:00:00"
+      }
+    ],
+    "9": [
+      {
+        "id": 8,
+        "produtoId": 9,
+        "nota": 3,
+        "comentario": "Jarro bonito, mas menor do que parecia nas fotos.",
+        "criadoEm": "2026-09-14T09:40:00"
+      }
+    ],
+    "11": [
+      {
+        "id": 6,
+        "produtoId": 11,
+        "nota": 5,
+        "comentario": "Crochê caprichado, a bolsa é leve e resistente. Amei saber que foi feita no Pilar.",
+        "criadoEm": "2026-09-25T20:10:00"
+      }
+    ],
+    "12": [
+      {
+        "id": 7,
+        "produtoId": 12,
+        "nota": 2,
+        "comentario": "O bordado é bonito, mas a toalha chegou manchada e a entrega atrasou.",
+        "criadoEm": "2026-10-08T13:00:00"
+      }
     ]
   }
 }

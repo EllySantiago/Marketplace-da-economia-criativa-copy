@@ -22,6 +22,16 @@
 --     usuários compradores (ids 7 a 11), porque avaliação e pedido exigem
 --     um usuário real.
 --
+-- Acréscimos da U2 que NÃO existem nos mocks (etapa H1.1):
+--   * Artesã 12 (Severina Cavalcanti), da Comunidade do Pilar, no Recife:
+--     âncora do PI. Pessoa fictícia. Produtos 11 a 13.
+--   * Comprador 13 (Lívia Barros), sem nenhum pedido: é o "usuário sem
+--     histórico", o caso difícil que o módulo de IA precisa tratar.
+--   * Pedidos 4 a 9: os compradores que só avaliavam (8 a 11) passam a ter
+--     compras, para a recomendação por comportamento ter dados. O pedido 9
+--     é CANCELADO de propósito (indicadores e views não devem somá-lo).
+--   * Produto 13 não tem venda nem avaliação.
+--
 -- Senha de TODAS as contas: origem123 (hash bcrypt, custo 10).
 --
 -- IDs inseridos explicitamente + setval() no fim de cada tabela: sem o
@@ -49,7 +59,9 @@ FROM senha_padrao, (VALUES
   (8,  'Rafael Souza',           'rafael@exemplo.com',        'comprador',     NULL, '2025-06-10 12:00:00'),
   (9,  'Juliana Prado',          'juliana@exemplo.com',       'comprador',     NULL, '2025-06-12 12:00:00'),
   (10, 'Bruno Ferreira',         'bruno@exemplo.com',         'comprador',     NULL, '2025-06-15 12:00:00'),
-  (11, 'Marcela Andrade',        'marcela@exemplo.com',       'comprador',     NULL, '2025-06-20 12:00:00')
+  (11, 'Marcela Andrade',        'marcela@exemplo.com',       'comprador',     NULL, '2025-06-20 12:00:00'),
+  (12, 'Severina Cavalcanti',    'severina@origem.com.br',    'artesao',       NULL, '2025-08-04 12:00:00'),
+  (13, 'Lívia Barros',           'livia@exemplo.com',         'comprador',     NULL, '2026-11-01 12:00:00')
 ) AS v(id, nome, email, perfil, avatar_url, criado_em);
 SELECT setval('usuario_id_seq', (SELECT MAX(id) FROM usuario));
 
@@ -114,13 +126,20 @@ INSERT INTO artesao (usuario_id, nome_atelie, descricao, regiao_id, foto_url, ca
       4,
       'https://images.unsplash.com/photo-1603219527847-24c87f552a77?w=240&h=240&fit=crop&auto=format',
       'https://images.unsplash.com/photo-1603219527847-24c87f552a77?w=1400&h=400&fit=crop&auto=format',
-      1998, TRUE);
+      1998, TRUE),
+  (12, 'Ateliê Comunidade do Pilar',
+      'Moradora da Comunidade do Pilar, no Bairro do Recife, Severina aprendeu o crochê e o bordado com as vizinhas da comunidade. Hoje ensina jovens do bairro e transforma linhas e retalhos em peças inspiradas no casario e na maré do Recife Antigo.',
+      3,
+      NULL,
+      NULL,
+      2012, TRUE);
 
 INSERT INTO artesao_tecnica (artesao_id, tecnica_id) VALUES
   (2, 1), (2, 2), (2, 6),
   (3, 3), (3, 7), (3, 8),
   (4, 4), (4, 9), (4, 10),
-  (5, 5), (5, 11), (5, 12);
+  (5, 5), (5, 11), (5, 12),
+  (12, 9), (12, 10), (12, 8);
 
 -- ----------------------------------------------------------------------------
 -- Produtos (mocks/produtos.mock.ts) — mesmos ids 1 a 10
@@ -156,7 +175,17 @@ INSERT INTO produto (id, artesao_id, categoria_id, tecnica_id, regiao_id, nome, 
        210.00, NULL, 5),
   (10, 3, 2, 3, 2, 'Painel Entalhado Cordel do Sertão',
        'Painel em madeira de umburana com xilogravura entalhada retratando cenas de cordel. 60×40 cm, pronto para pendurar.',
-       480.00, NULL, 3);
+       480.00, NULL, 3),
+  -- U2 (H1.1): produtos da artesã da Comunidade do Pilar
+  (11, 12, 3, 10, 3, 'Bolsa de Crochê Maré do Pilar',
+       'Bolsa de ombro em crochê de linha de algodão, com pontos que lembram o movimento da maré no cais do Recife Antigo. Forro em tecido reaproveitado e alça reforçada.',
+       145.00, NULL, 6),
+  (12, 12, 3, 9, 3, 'Toalha Bordada Casario do Recife',
+       'Toalha de mesa 1,40×1,40 m bordada à mão com o casario colorido do Bairro do Recife. Linha de algodão, acabamento em ponto cheio.',
+       230.00, 260.00, 4),
+  (13, 12, 2, 8, 3, 'Peixe Decorativo em Madeira Reaproveitada',
+       'Peixe de parede feito com madeira de demolição do Recife Antigo, pintado com pigmentos naturais. Cada peça tem cores e veios diferentes.',
+       120.00, NULL, 5);
 SELECT setval('produto_id_seq', (SELECT MAX(id) FROM produto));
 
 -- Imagens: a URL vai em chave_armazenamento; ordem 0 = imagem principal.
@@ -180,7 +209,10 @@ INSERT INTO produto_imagem (produto_id, chave_armazenamento, content_type, ordem
   (9,  'https://images.unsplash.com/photo-1786507244330-6ad954c96ef9?w=800&h=800&fit=crop&auto=format', 'image/jpeg', 0),
   (9,  'https://images.unsplash.com/photo-1641338215253-9e9c8cf48a5a?w=800&h=800&fit=crop&auto=format', 'image/jpeg', 1),
   (10, 'https://images.unsplash.com/photo-1721508490084-1b1de5b230d4?w=800&h=800&fit=crop&auto=format', 'image/jpeg', 0),
-  (10, 'https://images.unsplash.com/photo-1655138493602-49901f93d250?w=800&h=800&fit=crop&auto=format', 'image/jpeg', 1);
+  (10, 'https://images.unsplash.com/photo-1655138493602-49901f93d250?w=800&h=800&fit=crop&auto=format', 'image/jpeg', 1),
+  (11, 'https://images.unsplash.com/photo-1655149238677-9b5cb1a0afc6?w=800&h=800&fit=crop&auto=format', 'image/jpeg', 0),
+  (12, 'https://images.unsplash.com/photo-1628006025173-7c5558fa97c1?w=800&h=800&fit=crop&auto=format', 'image/jpeg', 0),
+  (13, 'https://images.unsplash.com/photo-1721508490084-1b1de5b230d4?w=800&h=800&fit=crop&auto=format', 'image/jpeg', 0);
 
 -- ----------------------------------------------------------------------------
 -- Pedidos de exemplo (mocks/pedidos.mock.ts). Horários em UTC, como nos mocks.
@@ -188,19 +220,42 @@ INSERT INTO produto_imagem (produto_id, chave_armazenamento, content_type, ordem
 INSERT INTO pedido (id, codigo, comprador_id, status, endereco_entrega, valor_total, frete, previsao_entrega, criado_em) VALUES
   (1, 'PE-4821', 1, 'entregue',   'Rua das Flores, 120 — Boa Viagem, Recife/PE — CEP 51020-000', 735.00,  0.00, '2026-08-28', '2026-08-20 14:32:00'),
   (2, 'PE-4790', 1, 'enviado',    'Rua das Flores, 120 — Boa Viagem, Recife/PE — CEP 51020-000', 760.00,  0.00, '2026-08-18', '2026-08-10 09:15:00'),
-  (3, 'PE-4705', 7, 'confirmado', 'Av. Agamenon Magalhães, 500 — Caruaru/PE — CEP 55010-000',   655.90, 35.90, '2026-08-05', '2026-07-28 18:40:00');
+  (3, 'PE-4705', 7, 'confirmado', 'Av. Agamenon Magalhães, 500 — Caruaru/PE — CEP 55010-000',   655.90, 35.90, '2026-08-05', '2026-07-28 18:40:00'),
+  -- U2 (H1.1): histórico de compras para a recomendação por comportamento
+  (4, 'PE-4850', 8,  'entregue',   'Rua do Futuro, 45 — Graças, Recife/PE — CEP 52050-000',           495.00,  0.00, '2026-09-10', '2026-09-02 10:05:00'),
+  (5, 'PE-4863', 9,  'entregue',   'Rua da Aurora, 300 — Boa Vista, Recife/PE — CEP 50050-000',       525.00,  0.00, '2026-09-22', '2026-09-15 16:40:00'),
+  (6, 'PE-4877', 10, 'entregue',   'Av. Rui Barbosa, 900 — Aflitos, Recife/PE — CEP 52050-000',       680.00,  0.00, '2026-10-05', '2026-09-28 11:20:00'),
+  (7, 'PE-4912', 11, 'enviado',    'Rua Amélia, 77 — Espinheiro, Recife/PE — CEP 52020-000',          960.00,  0.00, '2026-11-14', '2026-11-05 09:00:00'),
+  (8, 'PE-4925', 1,  'confirmado', 'Rua das Flores, 120 — Boa Viagem, Recife/PE — CEP 51020-000',     312.50, 22.50, '2026-11-20', '2026-11-12 19:30:00'),
+  (9, 'PE-4890', 9,  'cancelado',  'Rua da Aurora, 300 — Boa Vista, Recife/PE — CEP 50050-000',       195.00,  0.00, NULL,         '2026-10-20 08:45:00');
 SELECT setval('pedido_id_seq', (SELECT MAX(id) FROM pedido));
 
 INSERT INTO item_pedido (pedido_id, produto_id, artesao_id, quantidade, preco_unitario, subtotal) VALUES
   (1, 1, 2, 1, 285.00, 285.00),
   (1, 4, 5, 1, 450.00, 450.00),
   (2, 3, 4, 2, 380.00, 760.00),
-  (3, 2, 3, 1, 620.00, 620.00);
+  (3, 2, 3, 1, 620.00, 620.00),
+  (4, 1,  2,  1, 285.00, 285.00),
+  (4, 9,  2,  1, 210.00, 210.00),
+  (5, 3,  4,  1, 380.00, 380.00),
+  (5, 11, 12, 1, 145.00, 145.00),
+  (6, 4,  5,  1, 450.00, 450.00),
+  (6, 12, 12, 1, 230.00, 230.00),
+  (7, 2,  3,  1, 620.00, 620.00),
+  (7, 6,  3,  1, 340.00, 340.00),
+  (8, 11, 12, 2, 145.00, 290.00),
+  (9, 5,  2,  1, 195.00, 195.00);
 
 INSERT INTO pagamento (pedido_id, metodo, status, valor, processado_em) VALUES
   (1, 'cartao', 'aprovado', 735.00, '2026-08-20 14:32:00'),
   (2, 'pix',    'aprovado', 760.00, '2026-08-10 09:15:00'),
-  (3, 'boleto', 'aprovado', 655.90, '2026-07-28 18:40:00');
+  (3, 'boleto', 'aprovado', 655.90, '2026-07-28 18:40:00'),
+  (4, 'pix',    'aprovado', 495.00, '2026-09-02 10:05:00'),
+  (5, 'cartao', 'aprovado', 525.00, '2026-09-15 16:40:00'),
+  (6, 'pix',    'aprovado', 680.00, '2026-09-28 11:20:00'),
+  (7, 'cartao', 'aprovado', 960.00, '2026-11-05 09:00:00'),
+  (8, 'pix',    'aprovado', 312.50, '2026-11-12 19:30:00'),
+  (9, 'cartao', 'aprovado', 195.00, '2026-10-20 08:45:00');
 
 -- ----------------------------------------------------------------------------
 -- Avaliações (mocks/avaliacoes.mock.ts)
@@ -210,5 +265,9 @@ INSERT INTO avaliacao_produto (id, produto_id, usuario_id, nota, comentario, cri
   (2, 1, 8,  4, 'Muito bonita, só achei o prazo de entrega um pouco longo.',                 '2026-08-15 14:20:00'),
   (3, 3, 9,  5, 'A renda é impecável, dá pra ver o cuidado artesanal em cada detalhe.',      '2026-08-10 09:30:00'),
   (4, 4, 10, 5, 'Couro de altíssima qualidade, uso todo dia e já recebi vários elogios.',    '2026-07-30 18:00:00'),
-  (5, 2, 11, 4, 'Entalhe impressionante, ficou perfeito na sala.',                           '2026-07-25 11:15:00');
+  (5, 2, 11, 4, 'Entalhe impressionante, ficou perfeito na sala.',                           '2026-07-25 11:15:00'),
+  -- U2 (H1.1): notas variadas, inclusive negativas, para a análise de sentimento
+  (6, 11, 9,  5, 'Crochê caprichado, a bolsa é leve e resistente. Amei saber que foi feita no Pilar.', '2026-09-25 20:10:00'),
+  (7, 12, 10, 2, 'O bordado é bonito, mas a toalha chegou manchada e a entrega atrasou.',          '2026-10-08 13:00:00'),
+  (8, 9,  8,  3, 'Jarro bonito, mas menor do que parecia nas fotos.',                              '2026-09-14 09:40:00');
 SELECT setval('avaliacao_produto_id_seq', (SELECT MAX(id) FROM avaliacao_produto));

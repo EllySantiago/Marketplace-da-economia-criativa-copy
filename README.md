@@ -22,21 +22,24 @@ BentoML** da disciplina de IA. O andamento da U2 está em [`docs/plano-u2.md`](d
 | **Código** | [`ia-recomendacao/`](ia-recomendacao/) — detalhes de dados, regras e decisões no [README do módulo](ia-recomendacao/README.md) |
 
 O serviço sobe em `http://127.0.0.1:3001` e expõe as rotas REST especificadas na AV1. O
-catálogo é sintético (10 peças da Fake API do frontend + 1 peça inativa), e o frontend do
+catálogo vem do seed do backend (13 peças, uma artesã da Comunidade do Pilar), lido do
+PostgreSQL a cada chamada, e o frontend do
 Origem já consome o módulo na página de detalhe do produto (ver [Integração com o
 frontend](#integração-com-o-frontend)).
 
 ### Como instalar e subir
 
 Pré-requisitos: [uv](https://docs.astral.sh/uv/) (instala o Python 3.13 sozinho, se faltar),
-`curl` e `python3`. O [just](https://github.com/casey/just) é opcional — cada atalho abaixo
+`curl`, `python3` e o banco do backend no ar. Desde a U2 o módulo lê os dados do mesmo
+PostgreSQL do backend, a cada chamada, pelas funções de `ia-recomendacao/dados.py`. O [just](https://github.com/casey/just) é opcional — cada atalho abaixo
 mostra o comando equivalente.
 
 ```bash
 git clone https://github.com/thainapontes/Marketplace-da-economia-criativa.git
-cd Marketplace-da-economia-criativa/ia-recomendacao
-uv sync                    # instala bentoml e fastapi num .venv local
-just treino                # = uv run python treino.py  (grava o modelo no store do BentoML)
+cd Marketplace-da-economia-criativa/backend
+docker compose up -d       # PostgreSQL na porta 5434, com o seed
+cd ../ia-recomendacao
+uv sync                    # instala bentoml, fastapi e psycopg num .venv local
 just serve                 # = uv run bentoml serve service:RecomendadorOrigem --port 3001
 ```
 
@@ -63,12 +66,13 @@ Deixe o `just serve` aberto e use outro terminal para os testes. A documentaçã
 Com o serviço no ar (`just serve`), copie e cole cada comando. Os resultados abaixo são os
 obtidos com o catálogo do repositório. Para rodar todos de uma vez e ver OK/FALHOU:
 `just testes` (= `bash testes/casos.sh`, dentro de `ia-recomendacao/`). O script confere
-os mesmos 7 casos, na mesma ordem; o caso 6 aparece em duas linhas (401 e 403) e, no caso 4,
+os mesmos 8 casos, na mesma ordem; o caso 6 aparece em duas linhas (401 e 403) e, no caso 4,
 ele também falha se a resposta passar de 3 s.
 
 **Caso 1 — caminho feliz: peças relacionadas ao produto 1 (RF-01, RF-04, RF-07).** O produto 1
-é um cangaceiro de barro da artesã 1. Só os produtos 5 e 9 têm algo em comum com ele (o 11
-também, mas está inativo), então a lista é completada com os mais populares.
+é um cangaceiro de barro da artesã Maria. Só os produtos 5 e 9 têm algo em comum com ele, e são
+da mesma artesã: o limite de 2 por artesão (RNF-06) fecha aí, e a lista é completada com os
+mais populares.
 
 ```bash
 curl -s "http://127.0.0.1:3001/api/produtos/1/recomendados?limite=4" | python3 -c 'import json,sys; [print(r["id"], r["criterio"], r["score"]) for r in json.load(sys.stdin)["recomendacoes"]]'
@@ -79,8 +83,8 @@ Resultado esperado (id, critério, score):
 ```
 5 mesmo-artesao 6
 9 mesmo-artesao 4
-3 popularidade 0.8833
-4 popularidade 0.75
+3 popularidade 1.0
+11 popularidade 1.0
 ```
 
 **Caso 2 — produto inexistente (RF-02).**
@@ -120,7 +124,7 @@ Resultado esperado (o tempo fica perto de 2 s):
 ```
 
 **Caso 5 — recomendação pelo histórico de compra (RF-06).** A usuária 1 (Camila,
-`comprador@origem.com.br`) comprou os produtos 1, 3 e 4 na Fake API.
+`comprador@origem.com.br`) comprou os produtos 3, 1, 4 e 11 nos pedidos do seed.
 
 ```bash
 curl -s -H 'X-Usuario-Id: 1' "http://127.0.0.1:3001/api/usuarios/1/recomendados?limite=5" | python3 -c 'import json,sys; [print(r["id"], r["criterio"], r["score"]) for r in json.load(sys.stdin)["recomendacoes"]]'
@@ -132,8 +136,8 @@ Resultado esperado:
 5 historico-tecnica 3
 7 historico-tecnica 3
 9 historico-categoria 1
-2 popularidade 0.54
-6 popularidade 0.15
+12 historico-categoria 1
+2 popularidade 0.7067
 ```
 
 **Caso 6 — sem autenticação e com outro usuário (RF-06).**
@@ -161,8 +165,30 @@ chamada, porque cada recomendação devolvida vira uma linha do log. Logo após 
 numa primeira execução:
 
 ```
-{"de":null,"ate":null,"total":9,"porCriterio":{"mesmo-artesao":2,"popularidade":4,"historico-tecnica":2,"historico-categoria":1}}
+{"de":null,"ate":null,"total":9,"porCriterio":{"mesmo-artesao":2,"popularidade":3,"historico-tecnica":2,"historico-categoria":2}}
 ```
+
+**Caso 8 — usuária sem histórico de compra (caso difícil, RF-06 + RF-07).** A compradora 13
+(Lívia) existe, mas nunca comprou: em vez de erro, a lista inteira sai por popularidade.
+
+```bash
+curl -s -H 'X-Usuario-Id: 13' "http://127.0.0.1:3001/api/usuarios/13/recomendados?limite=5" | python3 -c 'import json,sys; [print(r["id"], r["criterio"], r["score"]) for r in json.load(sys.stdin)["recomendacoes"]]'
+```
+
+Resultado esperado:
+
+```
+3 popularidade 1.0
+11 popularidade 1.0
+4 popularidade 0.7667
+1 popularidade 0.7367
+2 popularidade 0.7067
+```
+
+**Funções de acesso e banco fora do ar.** `uv run python testes/test_dados.py` (dentro de
+`ia-recomendacao/`) testa as funções de `dados.py` duas vezes: lendo o banco e lendo o
+retrato `dados/catalogo.json`, com o banco desligado de propósito. Cobre produto, usuário e
+avaliação inexistentes, usuário sem compras e pedido cancelado.
 
 ### Integração com o frontend
 

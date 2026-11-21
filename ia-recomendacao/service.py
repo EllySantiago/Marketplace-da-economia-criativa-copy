@@ -2,6 +2,10 @@
 
 As rotas REST da AV1 (GET com id no caminho, erros 400/401/403/404/503 com `{ "erro": ... }`)
 ficam numa app FastAPI montada dentro do serviço BentoML em /api.
+
+Desde a U2 os dados vêm do PostgreSQL do backend, a cada chamada, pelas funções
+de dados.py: não há mais treino offline nem catálogo fixo. Mudou o banco, muda
+a resposta seguinte.
 """
 
 from __future__ import annotations
@@ -9,7 +13,6 @@ from __future__ import annotations
 import asyncio
 import json
 import os
-import pickle
 import time
 from collections import Counter
 from datetime import date, datetime, timezone
@@ -20,9 +23,10 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+import dados
 import recomendador
 
-ARTEFATO = "model.pkl"
+VERSAO_REGRAS = "regras-origem-u2"  # campo "modelo" da resposta (contrato da AV1)
 TIMEOUT_S = 2.0  # RF-08 / RNF-02
 LIMITE_PADRAO_PRODUTO = 4  # RF-05
 LIMITE_PADRAO_USUARIO = 8
@@ -30,8 +34,6 @@ LIMITE_MIN, LIMITE_MAX = 1, 20
 
 LOG = Path(os.environ.get("RECOMENDACAO_LOG", Path(__file__).resolve().parent / "logs" / "recomendacao_log.jsonl"))
 ORIGENS = os.environ.get("RECOMENDACAO_CORS", "http://localhost:3000,http://127.0.0.1:3000").split(",")
-
-modelo = bentoml.models.get("recomendador-origem:latest")
 
 app = FastAPI(title="Origem — módulo de recomendação")
 app.add_middleware(CORSMiddleware, allow_origins=ORIGENS, allow_methods=["GET"], allow_headers=["*"])
@@ -113,24 +115,37 @@ def _registrar(itens: list[dict], usuario_id: int | None, referencia: dict) -> N
         pass
 
 
+def _recomendar_por_produto(produto_id: int, limite: int) -> list[dict] | None:
+    """Busca os dados pelas funções de acesso e aplica as regras. None = produto inexistente."""
+    if dados.buscar_produto(produto_id) is None:
+        return None
+    artefato = recomendador.montar_artefato(dados.listar_produtos())
+    return recomendador.por_produto(artefato, produto_id, limite)
+
+
+def _recomendar_por_usuario(usuario_id: int, limite: int) -> list[dict]:
+    """Usuário inexistente ou sem compras recebe a mesma coisa: popularidade (RF-07)."""
+    historico = dados.historico_do_usuario(usuario_id) or []
+    artefato = recomendador.montar_artefato(dados.listar_produtos())
+    return recomendador.por_usuario(artefato, historico, limite)
+
+
 @bentoml.service(resources={"cpu": "1"})
 @bentoml.asgi_app(app, path="/api")
 class RecomendadorOrigem:
 
-    def __init__(self) -> None:
-        caminho = Path(modelo.path_of(ARTEFATO))
-        self.artefato = pickle.loads(caminho.read_bytes())
-
     @app.get("/produtos/{produto_id}/recomendados")
     async def recomendados_por_produto(self, produto_id: str, request: Request, limite: str | None = None):
         """RF-01, RF-02, RF-03, RF-04, RF-05, RF-07, RF-08."""
-        if not produto_id.isdigit() or produto_id not in self.artefato["produtos"]:
+        if not produto_id.isdigit():
             raise ErroHttp(404, f"Produto {produto_id} não encontrado")
         qtd = _limite(limite, LIMITE_PADRAO_PRODUTO)
         pid = int(produto_id)
-        itens = await _executar(request, recomendador.por_produto, self.artefato, pid, qtd)
+        itens = await _executar(request, _recomendar_por_produto, pid, qtd)
+        if itens is None:
+            raise ErroHttp(404, f"Produto {produto_id} não encontrado")
         _registrar(itens, _usuario_autenticado(request), {"produto_referencia_id": pid})
-        return {"produtoReferenciaId": pid, "recomendacoes": itens, "modelo": str(modelo.tag)}
+        return {"produtoReferenciaId": pid, "recomendacoes": itens, "modelo": VERSAO_REGRAS}
 
     @app.get("/usuarios/{usuario_id}/recomendados")
     async def recomendados_por_usuario(self, usuario_id: str, request: Request, limite: str | None = None):
@@ -141,9 +156,9 @@ class RecomendadorOrigem:
         if usuario_id != str(autenticado):
             raise ErroHttp(403, "Só é possível consultar as próprias recomendações")
         qtd = _limite(limite, LIMITE_PADRAO_USUARIO)
-        itens = await _executar(request, recomendador.por_usuario, self.artefato, autenticado, qtd)
+        itens = await _executar(request, _recomendar_por_usuario, autenticado, qtd)
         _registrar(itens, autenticado, {"produto_referencia_id": None})
-        return {"usuarioId": autenticado, "recomendacoes": itens, "modelo": str(modelo.tag)}
+        return {"usuarioId": autenticado, "recomendacoes": itens, "modelo": VERSAO_REGRAS}
 
     @app.get("/recomendacoes/metricas")
     async def metricas(self, de: str | None = None, ate: str | None = None):
