@@ -1,11 +1,7 @@
 import type { DadosNovoPedido, Pedido, StatusPedido } from "@/types/pedido";
-import { pedidosMock } from "@/mocks/pedidos.mock";
-import { delay, ApiError } from "./client";
-import { produtosService } from "./produtos.service";
+import { apiFetch } from "./client";
 
-const pedidos: Pedido[] = [...pedidosMock];
-let proximoNumero = 4822;
-
+/** Mesmas transições que a API aceita em PATCH /pedidos/:codigo/status (docs/api.md, seção 6). */
 const transicoesStatus: Record<StatusPedido, StatusPedido[]> = {
   pendente: ["confirmado", "cancelado"],
   confirmado: ["em_producao", "cancelado"],
@@ -19,95 +15,46 @@ export function obterProximosStatus(status: StatusPedido): StatusPedido[] {
   return [...transicoesStatus[status]];
 }
 
-function gerarCodigo(): string {
-  return `PE-${proximoNumero++}`;
-}
-
-function calcularFrete(subtotal: number): number {
-  return subtotal >= 400 ? 0 : 35.9;
-}
-
+/**
+ * Pedidos pela API. GET /pedidos decide o escopo pelo perfil do LOGIN (comprador: os dele; artesão:
+ * os que têm item dele; admin: todos), então os argumentos de listarPorCliente e listarPorArtesao
+ * ficaram só para as telas não mudarem: quem escolhe é o servidor, não o navegador.
+ */
 export const pedidosService = {
   async listarTodos(): Promise<Pedido[]> {
-    return delay([...pedidos].sort((a, b) => (a.data < b.data ? 1 : -1)));
+    return apiFetch<Pedido[]>("/pedidos");
   },
 
-  async listarPorCliente(email: string): Promise<Pedido[]> {
-    const lista = pedidos.filter((pedido) => pedido.clienteEmail.toLowerCase() === email.toLowerCase());
-    return delay(lista.sort((a, b) => (a.data < b.data ? 1 : -1)));
+  async listarPorCliente(_email: string): Promise<Pedido[]> {
+    return apiFetch<Pedido[]>("/pedidos");
   },
 
-  async listarPorArtesao(artesaoId: number): Promise<Pedido[]> {
-    const lista = pedidos.filter((pedido) => pedido.itens.some((item) => item.produto.artesaoId === artesaoId));
-    return delay(lista.sort((a, b) => (a.data < b.data ? 1 : -1)));
+  async listarPorArtesao(_artesaoId: number): Promise<Pedido[]> {
+    return apiFetch<Pedido[]>("/pedidos");
   },
 
+  /** GET /pedidos/:codigo: 403 se o pedido for de outra pessoa, 404 se não existir. */
   async buscarPorCodigo(codigo: string): Promise<Pedido> {
-    const pedido = pedidos.find((item) => item.codigo === codigo);
-    if (!pedido) {
-      await delay(null, 250);
-      throw new ApiError(`Pedido ${codigo} não encontrado.`);
-    }
-    return delay(pedido);
+    return apiFetch<Pedido>(`/pedidos/${encodeURIComponent(codigo)}`);
   },
 
-  async atualizarStatus(codigo: string, artesaoId: number, novoStatus: StatusPedido): Promise<Pedido> {
-    const pedido = pedidos.find((item) => item.codigo === codigo);
-    if (!pedido) {
-      throw new ApiError(`Pedido ${codigo} não encontrado.`);
-    }
-
-    const autorizado = pedido.itens.some((item) => item.produto.artesaoId === artesaoId);
-    if (!autorizado) {
-      throw new ApiError("Você não tem permissão para atualizar este pedido.");
-    }
-
-    if (!transicoesStatus[pedido.status].includes(novoStatus)) {
-      throw new ApiError(`Não é possível alterar o pedido de ${pedido.status} para ${novoStatus}.`);
-    }
-
-    // O estoque foi descontado na criação do pedido (criarPedido -> removerEstoque); ao
-    // cancelar, as peças precisam voltar a ficar disponíveis no catálogo.
-    if (novoStatus === "cancelado") {
-      await produtosService.devolverEstoque(pedido.itens.map((item) => ({ produtoId: item.produto.id, quantidade: item.quantidade })));
-    }
-
-    pedido.status = novoStatus;
-    return delay(pedido);
+  /** PATCH /pedidos/:codigo/status (artesão com item no pedido). Cancelar devolve o estoque na API. */
+  async atualizarStatus(codigo: string, _artesaoId: number, novoStatus: StatusPedido): Promise<Pedido> {
+    return apiFetch<Pedido>(`/pedidos/${encodeURIComponent(codigo)}/status`, { metodo: "PATCH", corpo: { status: novoStatus } });
   },
 
+  /**
+   * POST /pedidos: checkout seguro do FCCPD U1 (sem vender mais do que o estoque). O comprador vem
+   * do login e o preço vem do banco: o navegador manda só produto e quantidade.
+   */
   async criarPedido(dados: DadosNovoPedido): Promise<Pedido> {
-    if (dados.itens.length === 0) {
-      throw new ApiError("Não é possível confirmar um pedido sem itens.");
-    }
-
-    // Confere e baixa o estoque antes de confirmar — mesma regra descrita no DDL (seção 7):
-    // evita "vender" mais peças do que o artesão realmente tem disponíveis.
-    await produtosService.removerEstoque(dados.itens.map((item) => ({ produtoId: item.produto.id, quantidade: item.quantidade })));
-
-    const subtotal = dados.itens.reduce((total, item) => total + item.produto.preco * item.quantidade, 0);
-    const frete = calcularFrete(subtotal);
-    const total = subtotal + frete;
-    const agora = new Date();
-    const previsao = new Date(agora);
-    previsao.setDate(previsao.getDate() + 8);
-
-    // Pagamento simulado (tabela `pagamento` do DDL): sempre aprovado no cenário de demonstração —
-    // não existe integração real com nenhuma adquirente nesta fase do projeto.
-    const pedido: Pedido = {
-      codigo: gerarCodigo(),
-      data: agora.toISOString(),
-      clienteEmail: dados.clienteEmail,
-      enderecoEntrega: dados.enderecoEntrega,
-      itens: dados.itens,
-      subtotal,
-      frete,
-      total,
-      status: "confirmado",
-      previsaoEntrega: previsao.toISOString(),
-      pagamento: { metodo: dados.metodoPagamento, status: "aprovado", valor: total, processadoEm: agora.toISOString() },
-    };
-    pedidos.unshift(pedido);
-    return delay(pedido, 450);
+    return apiFetch<Pedido>("/pedidos", {
+      metodo: "POST",
+      corpo: {
+        enderecoEntrega: dados.enderecoEntrega,
+        metodoPagamento: dados.metodoPagamento,
+        itens: dados.itens.map((item) => ({ produtoId: item.produto.id, quantidade: item.quantidade })),
+      },
+    });
   },
 };
