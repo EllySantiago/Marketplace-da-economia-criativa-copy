@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { useFiltros } from "@/hooks/useFiltros";
 import { Input } from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import ErrorState from "@/components/feedback/ErrorState";
@@ -52,6 +53,8 @@ export default function RegisterForm() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
+  const [regiao, setRegiao] = useState("");
+  const { regioes } = useFiltros();
   const [aceiteTermos, setAceiteTermos] = useState(false);
   const [erroLocal, setErroLocal] = useState<string | null>(null);
 
@@ -61,8 +64,12 @@ export default function RegisterForm() {
       setErroLocal("As senhas não coincidem.");
       return;
     }
+    if (perfil === "artesao" && !regiao) {
+      setErroLocal("Escolha a região do seu ateliê.");
+      return;
+    }
     setErroLocal(null);
-    const usuario = await cadastrar({ nome, email, senha, perfil });
+    const usuario = await cadastrar({ nome, email, senha, perfil, regiao: perfil === "artesao" ? regiao : undefined });
     if (usuario) router.push(usuario.perfil === "artesao" ? ROTAS.painelArtesao : ROTAS.home);
   }
 
@@ -90,6 +97,26 @@ export default function RegisterForm() {
       <Input label="E-mail" id="cadastro-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" placeholder="seu@email.com.br" />
       <CampoSenha id="cadastro-senha" label="Senha" valor={senha} onChange={setSenha} />
       <CampoSenha id="cadastro-confirmar" label="Confirmar senha" valor={confirmarSenha} onChange={setConfirmarSenha} />
+
+      {perfil === "artesao" && (
+        <label htmlFor="cadastro-regiao" className="block text-sm font-semibold text-[#555]">
+          Região do ateliê
+          <select
+            id="cadastro-regiao"
+            required
+            value={regiao}
+            onChange={(e) => setRegiao(e.target.value)}
+            className="mt-2 w-full border border-beige-dark bg-white px-4 py-3 text-[.9375rem] font-normal"
+          >
+            <option value="" disabled>
+              Escolha a região de Pernambuco
+            </option>
+            {regioes.map((opcao) => (
+              <option key={opcao}>{opcao}</option>
+            ))}
+          </select>
+        </label>
+      )}
 
       {perfil === "artesao" && (
         <div className="flex gap-3 border border-beige-dark bg-beige p-4 text-[.8125rem] leading-[1.6] text-[#555]">
