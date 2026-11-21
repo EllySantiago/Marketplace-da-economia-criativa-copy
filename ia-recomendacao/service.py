@@ -25,6 +25,7 @@ from fastapi.responses import JSONResponse
 
 import dados
 import recomendador
+import uso
 
 VERSAO_REGRAS = "regras-origem-u2"  # campo "modelo" da resposta (contrato da AV1)
 TIMEOUT_S = 2.0  # RF-08 / RNF-02
@@ -78,21 +79,45 @@ def _usuario_autenticado(request: Request) -> int | None:
         return None
 
 
-async def _executar(request: Request, funcao, *args) -> list[dict]:
-    """RF-08: roda a estratégia com timeout de 2 s; erro ou lentidão viram 503."""
-    simular = request.headers.get("x-simular-falha", "")  # só para o caso de teste do RF-08
+def _definir_chamador(request: Request) -> None:
+    """Quem chamou, para o log de uso: header X-Origem-Chamador (backend, frontend, teste...)."""
+    valor = request.headers.get("x-origem-chamador", "").strip().lower()
+    uso.quem_chamou.set(valor if valor in uso.CHAMADORES else "api")
 
-    def tarefa() -> list[dict]:
+
+async def _executar(request: Request, funcao, **parametros) -> list[dict] | None:
+    """RF-08: roda a estratégia com timeout de 2 s; erro ou lentidão viram 503.
+
+    Cada execução vira uma linha no log de uso (uso.py), com o nome da
+    estratégia, os parâmetros, os ids devolvidos e, se falhar, o motivo. As
+    funções de dados chamadas lá dentro registram as próprias linhas.
+    """
+    simular = request.headers.get("x-simular-falha", "")  # só para o caso de teste do RF-08
+    _definir_chamador(request)
+    nome = funcao.__name__.lstrip("_")
+
+    def tarefa() -> list[dict] | None:
         if simular == "lentidao":
             time.sleep(TIMEOUT_S + 1)
         if simular == "erro":
-            raise RuntimeError("falha simulada")
-        return funcao(*args)
+            raise RuntimeError("falha simulada (header X-Simular-Falha)")
+        return funcao(**parametros)
 
+    inicio = time.perf_counter()
     try:
-        return await asyncio.wait_for(asyncio.to_thread(tarefa), TIMEOUT_S)
-    except Exception:
+        itens = await asyncio.wait_for(asyncio.to_thread(tarefa), TIMEOUT_S)
+    except Exception as excecao:
+        motivo = (f"TimeoutError: passou de {TIMEOUT_S:g} s (RF-08)" if isinstance(excecao, TimeoutError)
+                  else uso.descrever_erro(excecao))
+        uso.registrar(nome, parametros, "erro", erro=motivo, duracao_ms=(time.perf_counter() - inicio) * 1000)
         raise ErroHttp(503, "Recomendações indisponíveis no momento") from None
+    duracao = (time.perf_counter() - inicio) * 1000
+    if itens is None:
+        uso.registrar(nome, parametros, "nao-encontrado", duracao_ms=duracao)
+    else:
+        uso.registrar(nome, parametros, "sucesso", len(itens), [item["id"] for item in itens],
+                      dados.ULTIMA_FONTE, duracao_ms=duracao)
+    return itens
 
 
 def _registrar(itens: list[dict], usuario_id: int | None, referencia: dict) -> None:
@@ -141,7 +166,7 @@ class RecomendadorOrigem:
             raise ErroHttp(404, f"Produto {produto_id} não encontrado")
         qtd = _limite(limite, LIMITE_PADRAO_PRODUTO)
         pid = int(produto_id)
-        itens = await _executar(request, _recomendar_por_produto, pid, qtd)
+        itens = await _executar(request, _recomendar_por_produto, produto_id=pid, limite=qtd)
         if itens is None:
             raise ErroHttp(404, f"Produto {produto_id} não encontrado")
         _registrar(itens, _usuario_autenticado(request), {"produto_referencia_id": pid})
@@ -156,7 +181,7 @@ class RecomendadorOrigem:
         if usuario_id != str(autenticado):
             raise ErroHttp(403, "Só é possível consultar as próprias recomendações")
         qtd = _limite(limite, LIMITE_PADRAO_USUARIO)
-        itens = await _executar(request, _recomendar_por_usuario, autenticado, qtd)
+        itens = await _executar(request, _recomendar_por_usuario, usuario_id=autenticado, limite=qtd)
         _registrar(itens, autenticado, {"produto_referencia_id": None})
         return {"usuarioId": autenticado, "recomendacoes": itens, "modelo": VERSAO_REGRAS}
 

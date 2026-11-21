@@ -12,7 +12,7 @@ caso() {
   local nome="$1" esperado="$2" checagem="$3"
   shift 3
   local corpo status tempo
-  corpo="$(curl -sS -w '\n%{http_code} %{time_total}' "$@")"
+  corpo="$(curl -sS -H 'X-Origem-Chamador: teste' -w '\n%{http_code} %{time_total}' "$@")"
   status="${corpo##*$'\n'}"
   corpo="${corpo%$'\n'*}"
   tempo="${status#* }"

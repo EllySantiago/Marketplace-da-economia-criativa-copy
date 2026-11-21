@@ -14,8 +14,9 @@ testes:
     bash testes/casos.sh
 
 testes-dados:
-    # Funções de acesso, lendo o banco e o retrato (precisa do banco no ar).
+    # Funções de acesso (banco e retrato) e log de uso (precisa do banco no ar).
     uv run python testes/test_dados.py
+    uv run python testes/test_uso.py
 
 # Regera o retrato dados/catalogo.json a partir do banco (usado quando o banco está fora do ar).
 retrato:
