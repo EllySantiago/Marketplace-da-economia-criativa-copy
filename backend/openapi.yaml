@@ -279,6 +279,54 @@ components:
           type: array
           items: { $ref: "#/components/schemas/Recomendado" }
 
+    Sentimento:
+      type: object
+      properties:
+        produtoId: { type: integer }
+        fonte:
+          type: string
+          enum: [ia, indisponivel]
+          description: "indisponivel = a IA caiu ou passou de 2 s; resumo vem null e avaliacoes vazia."
+        resumo:
+          type: object
+          nullable: true
+          properties:
+            total: { type: integer }
+            porRotulo:
+              type: object
+              properties:
+                positivo: { type: integer }
+                neutro: { type: integer }
+                negativo: { type: integer }
+            rotuloGeral: { type: string, enum: [positivo, neutro, negativo], nullable: true }
+            pontuacaoMedia: { type: number, nullable: true }
+        avaliacoes:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: integer, description: "Id da avaliação (o mesmo de GET /produtos/{id}/avaliacoes)." }
+              sentimento: { type: string, enum: [positivo, neutro, negativo] }
+              pontuacao: { type: number }
+        modelo: { type: string, nullable: true, description: "Versão das regras do módulo de IA." }
+    Classificacoes:
+      type: object
+      properties:
+        fonte: { type: string, enum: [ia, indisponivel] }
+        itens:
+          type: array
+          items:
+            type: object
+            properties:
+              produtoId: { type: integer }
+              nome: { type: string }
+              artesao: { type: string }
+              categoriaAtual: { type: string }
+              classe: { type: string, description: "Categoria que o texto do produto sugere (ou indefinida)." }
+              confianca: { type: number, minimum: 0, maximum: 1 }
+              status: { type: string, enum: [aprovado, revisao] }
+              palavras: { type: array, items: { type: string } }
+
 paths:
   # ------------------------------------------------------------- autenticação
   /auth/registrar:
@@ -480,6 +528,14 @@ paths:
         "409": { $ref: "#/components/responses/Erro409" }
 
   # ------------------------------------------------------------------ carrinho
+  /produtos/{id}/sentimento:
+    get:
+      tags: [Avaliações]
+      summary: Sentimento das avaliações do produto (módulo de IA, repassado pela API)
+      parameters: [{ $ref: "#/components/parameters/id" }]
+      responses:
+        "200": { description: "Com a IA fora, fonte = indisponivel.", content: { application/json: { schema: { $ref: "#/components/schemas/Sentimento" } } } }
+        "404": { $ref: "#/components/responses/Erro404" }
   /carrinho:
     get:
       tags: [Carrinho]
@@ -653,6 +709,17 @@ paths:
         "401": { $ref: "#/components/responses/Erro401" }
         "403": { $ref: "#/components/responses/Erro403" }
         "404": { $ref: "#/components/responses/Erro404" }
+
+  /admin/classificacoes:
+    get:
+      tags: [Administração]
+      summary: Categoria sugerida pelo módulo de IA para cada produto da vitrine
+      description: "Os que precisam de revisão vêm primeiro. Com a IA fora, fonte = indisponivel e itens vazia."
+      security: [{ bearer: [] }, { cookie: [] }]
+      responses:
+        "200": { description: "OK", content: { application/json: { schema: { $ref: "#/components/schemas/Classificacoes" } } } }
+        "401": { $ref: "#/components/responses/Erro401" }
+        "403": { $ref: "#/components/responses/Erro403" }
 
   # --------------------------------------------------------- laboratório FCCPD
   /saude:

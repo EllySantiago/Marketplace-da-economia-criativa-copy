@@ -3,6 +3,7 @@
 // ============================================================================
 
 import * as produtosService from "../services/produtos.service.js";
+import * as analisesService from "../services/analises.service.js";
 import { idDaUrl, invalido, exigirCorpo, texto } from "../utils/validacao.js";
 
 /** Valor de filtro da query string: ausente, vazio ou "Todas" = sem filtro. */
@@ -39,6 +40,10 @@ export async function buscarPorId(req, res) {
 
 export async function listarAvaliacoes(req, res) {
   res.json(await produtosService.listarAvaliacoes(idDaUrl(req.params.id, "Produto"), req.usuario));
+}
+
+export async function sentimento(req, res) {
+  res.json(await analisesService.sentimentoDoProduto(idDaUrl(req.params.id, "Produto"), req.usuario));
 }
 
 /** Corpo { nota: 1 a 5, comentario?: texto até 1000 caracteres }. */
