@@ -7,6 +7,7 @@ import { useArtesao, useIndicadoresArtesao } from "@/hooks/useArtesoes";
 import { useProdutos, useRemoverProduto } from "@/hooks/useProdutos";
 import { usePedidos } from "@/hooks/usePedidos";
 import Sidebar from "@/components/layout/Sidebar";
+import MetricCard from "@/components/ui/MetricCard";
 import ProductForm from "@/components/forms/ProductForm";
 import ProductManageCard from "@/components/produto/ProductManageCard";
 import OrderStatus, { rotulosStatus } from "@/components/pedido/OrderStatus";
@@ -30,15 +31,6 @@ const itensMenu = [
   { id: "orders", label: "Pedidos", icone: "📦" },
   { id: "stock", label: "Estoque", icone: "📋" },
 ] as const;
-
-function MetricCard({ label, valor }: { label: string; valor: string }) {
-  return (
-    <div className="metric-card">
-      <p className="text-xs uppercase tracking-[.08em] text-[#888]">{label}</p>
-      <p className="font-display mt-2 text-2xl text-charcoal">{valor}</p>
-    </div>
-  );
-}
 
 export default function PainelArtesaoPage() {
   const { usuario, estaAutenticado } = useAuth();

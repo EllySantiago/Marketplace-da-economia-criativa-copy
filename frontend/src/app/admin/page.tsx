@@ -7,6 +7,7 @@ import { useArtesoes, useArtesoesPendentes } from "@/hooks/useArtesoes";
 import { usePedidos } from "@/hooks/usePedidos";
 import { useClassificacoes, useIndicadoresAdmin } from "@/hooks/useAdmin";
 import Sidebar from "@/components/layout/Sidebar";
+import MetricCard from "@/components/ui/MetricCard";
 import OrderStatus from "@/components/pedido/OrderStatus";
 import LoadingState from "@/components/feedback/LoadingState";
 import ErrorState from "@/components/feedback/ErrorState";
@@ -23,15 +24,6 @@ const itensMenu = [
   { id: "pedidos", label: "Pedidos", icone: "📊" },
   { id: "classificacao", label: "Classificação (IA)", icone: "🏷" },
 ] as const;
-
-function MetricCard({ label, valor }: { label: string; valor: string }) {
-  return (
-    <div className="metric-card">
-      <p className="text-xs uppercase tracking-[.08em] text-[#888]">{label}</p>
-      <p className="font-display mt-2 text-2xl text-charcoal">{valor}</p>
-    </div>
-  );
-}
 
 export default function AdminPage() {
   const { usuario, estaAutenticado } = useAuth();
