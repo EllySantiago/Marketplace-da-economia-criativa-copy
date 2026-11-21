@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 import { useAuthStore } from "@/store/authStore";
 import { useCartStore } from "@/store/cartStore";
 import { usuariosService } from "@/services/api/usuarios.service";
 import { ApiError } from "@/services/api/client";
 import type { CredenciaisLogin, DadosCadastro } from "@/types/usuario";
+import { useAcao } from "./useAcao";
 
 /**
  * Sessão do usuário. A sessão de verdade é o cookie httpOnly que a API grava no login; o store
@@ -15,43 +16,25 @@ export function useAuth() {
   const usuario = useAuthStore((state) => state.usuario);
   const autenticar = useAuthStore((state) => state.autenticar);
   const limparSessao = useAuthStore((state) => state.sair);
-  const [carregando, setCarregando] = useState(false);
-  const [erro, setErro] = useState<string | null>(null);
+  const login = useAcao(usuariosService.login, "Não foi possível entrar.");
+  const cadastro = useAcao(usuariosService.registrar, "Não foi possível criar a conta.");
 
   const entrar = useCallback(
     async (credenciais: CredenciaisLogin) => {
-      setCarregando(true);
-      setErro(null);
-      try {
-        const usuarioAutenticado = await usuariosService.login(credenciais);
-        autenticar(usuarioAutenticado);
-        return usuarioAutenticado;
-      } catch (erroCapturado) {
-        setErro(erroCapturado instanceof Error ? erroCapturado.message : "Não foi possível entrar.");
-        return null;
-      } finally {
-        setCarregando(false);
-      }
+      const usuarioAutenticado = await login.executar(credenciais);
+      if (usuarioAutenticado) autenticar(usuarioAutenticado);
+      return usuarioAutenticado;
     },
-    [autenticar],
+    [login.executar, autenticar],
   );
 
   const cadastrar = useCallback(
     async (dados: DadosCadastro) => {
-      setCarregando(true);
-      setErro(null);
-      try {
-        const novoUsuario = await usuariosService.registrar(dados);
-        autenticar(novoUsuario);
-        return novoUsuario;
-      } catch (erroCapturado) {
-        setErro(erroCapturado instanceof Error ? erroCapturado.message : "Não foi possível criar a conta.");
-        return null;
-      } finally {
-        setCarregando(false);
-      }
+      const novoUsuario = await cadastro.executar(dados);
+      if (novoUsuario) autenticar(novoUsuario);
+      return novoUsuario;
     },
-    [autenticar],
+    [cadastro.executar, autenticar],
   );
 
   /** Apaga o cookie na API e os dados locais. Se a rede falhar, sai do mesmo jeito neste navegador. */
@@ -67,6 +50,8 @@ export function useAuth() {
     if (eraComprador) useCartStore.getState().limparCarrinho();
   }, [limparSessao]);
 
+  const carregando = login.enviando || cadastro.enviando;
+  const erro = login.erro ?? cadastro.erro;
   return { usuario, estaAutenticado: Boolean(usuario), carregando, erro, entrar, cadastrar, sair };
 }
 
