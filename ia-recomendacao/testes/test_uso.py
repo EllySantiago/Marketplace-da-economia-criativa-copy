@@ -107,9 +107,10 @@ class Resumo(unittest.TestCase):
         {"id": 3, "nome": "C", "status": "ativo", "estoque": 2, "vendas": 0, "notaMedia": 0},
     ]
 
-    def linha(self, funcao, resultado="sucesso", parametros=None, ids=None, erro=None):
+    def linha(self, funcao, resultado="sucesso", parametros=None, ids=None, erro=None, registros=None):
         base = {"data_hora": "2026-11-21T10:00:00-03:00", "funcao": funcao, "quem_chamou": "teste",
-                "parametros": parametros or {}, "fonte": "banco", "resultado": resultado, "registros": len(ids or [])}
+                "parametros": parametros or {}, "fonte": "banco", "resultado": resultado,
+                "registros": len(ids or []) if registros is None else registros}
         if ids is not None:
             base["ids"] = ids
         if erro:
@@ -118,14 +119,14 @@ class Resumo(unittest.TestCase):
 
     def test_responde_a_b_c(self) -> None:
         linhas = [
-            self.linha("listar_produtos"),
-            self.linha("listar_produtos"),
+            self.linha("listar_produtos", registros=3),  # leitura em massa: só a quantidade
+            self.linha("listar_produtos", registros=3),
             self.linha("recomendar_por_produto", parametros={"produto_id": 1}, ids=[1]),
             self.linha("buscar_produto", "nao-encontrado", {"produto_id": 999}),
             self.linha("recomendar_por_produto", "erro", {"produto_id": 1}, erro="TimeoutError: passou de 2 s (RF-08)"),
         ]
         texto = resumo.montar(linhas, self.PRODUTOS, [7], "banco")
-        self.assertIn("`listar_produtos` foi a função mais chamada (2 de 5", texto)
+        self.assertIn("**(a) Qual dado o módulo mais usa?** `listar_produtos`: 2 de 5 chamadas", texto)
         self.assertIn("O registro mais usado foi o produto 1", texto)
         self.assertIn("2 produto(s) nunca apareceram (2, 3)", texto)
         self.assertIn("| 2 | B | sem estoque", texto)

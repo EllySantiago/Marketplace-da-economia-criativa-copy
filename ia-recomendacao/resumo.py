@@ -65,12 +65,14 @@ def ler_catalogo() -> tuple[list[dict], list[int], str]:
 
 def contar(linhas: list[dict]) -> dict:
     por_funcao: dict[str, Counter] = defaultdict(Counter)
+    lidos: Counter = Counter()  # registros devolvidos, somados por função
     quem, fontes = Counter(), Counter()
     produtos_consultados, produtos_devolvidos, usuarios = Counter(), Counter(), Counter()
     erros: dict[str, list[dict]] = defaultdict(list)
     for linha in linhas:
         funcao = linha["funcao"]
         por_funcao[funcao][linha["resultado"]] += 1
+        lidos[funcao] += linha.get("registros") or 0
         quem[linha["quem_chamou"]] += 1
         if linha.get("fonte"):
             fontes[linha["fonte"]] += 1
@@ -83,7 +85,7 @@ def contar(linhas: list[dict]) -> dict:
             usuarios[parametros["usuario_id"]] += 1
         if linha["resultado"] == "erro":
             erros[linha.get("erro", "sem motivo registrado")].append(linha)
-    return {"por_funcao": por_funcao, "quem": quem, "fontes": fontes, "erros": erros,
+    return {"por_funcao": por_funcao, "lidos": lidos, "quem": quem, "fontes": fontes, "erros": erros,
             "consultados": produtos_consultados, "devolvidos": produtos_devolvidos, "usuarios": usuarios}
 
 
@@ -118,11 +120,11 @@ def montar(linhas: list[dict], produtos: list[dict], compradores: list[int], fon
             f"Catálogo comparado: {len(produtos)} produtos e {len(compradores)} compradores (lidos do {fonte_catalogo}).\n")
 
     escreve("## Chamadas por função\n")
-    escreve("| Função | Chamadas | Sucesso | Não encontrado | Erro |")
-    escreve("|---|---:|---:|---:|---:|")
+    escreve("| Função | Chamadas | Sucesso | Não encontrado | Erro | Registros devolvidos |")
+    escreve("|---|---:|---:|---:|---:|---:|")
     for funcao, contagem in sorted(c["por_funcao"].items(), key=lambda kv: -sum(kv[1].values())):
         escreve(f"| `{funcao}` | {sum(contagem.values())} | {contagem['sucesso']} | "
-                f"{contagem['nao-encontrado']} | {contagem['erro']} |")
+                f"{contagem['nao-encontrado']} | {contagem['erro']} | {c['lidos'][funcao]} |")
     nunca = [f for f in FUNCOES_CONHECIDAS if f not in c["por_funcao"]]
     escreve("")
     if nunca:
@@ -173,10 +175,14 @@ def montar(linhas: list[dict], produtos: list[dict], compradores: list[int], fon
 
     # --- respostas -------------------------------------------------------------
     escreve("## Respostas\n")
-    funcao_top, contagem_top = max(c["por_funcao"].items(), key=lambda kv: sum(kv[1].values()))
-    texto_a = (f"**(a) Qual dado o módulo mais usa?** O catálogo de produtos: `{funcao_top}` foi a função mais chamada "
-               f"({sum(contagem_top.values())} de {total} chamadas), porque toda recomendação precisa comparar o "
-               "produto com os demais.")
+    # "Mais usa" = mais registros lidos; empate sai pelo número de chamadas.
+    funcao_top = max(c["por_funcao"], key=lambda f: (c["lidos"][f], sum(c["por_funcao"][f].values())))
+    chamadas_top = sum(c["por_funcao"][funcao_top].values())
+    texto_a = (f"**(a) Qual dado o módulo mais usa?** `{funcao_top}`: {chamadas_top} de {total} chamadas e "
+               f"{c['lidos'][funcao_top]} registros devolvidos, mais que qualquer outra função.")
+    if funcao_top == "listar_produtos":
+        texto_a += (" Ou seja, o catálogo inteiro de produtos: toda recomendação lê todos os produtos para "
+                    "comparar com a referência e calcular a popularidade.")
     if uso_total:
         pid, n = uso_total.most_common(1)[0]
         texto_a += f" O registro mais usado foi o produto {pid} ({nomes.get(pid, '?')}), em {n} chamadas."
