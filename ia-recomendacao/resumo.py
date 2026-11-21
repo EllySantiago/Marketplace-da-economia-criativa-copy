@@ -27,13 +27,14 @@ import uso
 
 # Em quais funções os ids (nos parâmetros ou no retorno) são ids de PRODUTO.
 PRODUTO_NO_PARAMETRO = {"buscar_produto", "listar_avaliacoes", "recomendar_por_produto",
-                        "sentimento_do_produto", "classificar_produto"}
+                        "sentimento_do_produto", "classificar_produto", "gravar_classificacao"}
 PRODUTO_NO_RETORNO = {"buscar_produto", "historico_do_usuario", "recomendar_por_produto",
                       "recomendar_por_usuario"}
 USUARIO_NO_PARAMETRO = {"historico_do_usuario", "recomendar_por_usuario"}
 FUNCOES_CONHECIDAS = ["listar_produtos", "buscar_produto", "historico_do_usuario", "listar_avaliacoes",
                       "listar_compradores", "historicos_de_todos", "recomendar_por_produto",
-                      "recomendar_por_usuario", "sentimento_do_produto"]
+                      "recomendar_por_usuario", "sentimento_do_produto",
+                      "classificar_produto", "gravar_classificacao"]
 
 
 def ler_log(arquivo: Path) -> list[dict]:

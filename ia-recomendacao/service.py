@@ -23,6 +23,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+import classificador
 import dados
 import recomendador
 import sentimento
@@ -30,6 +31,7 @@ import uso
 
 VERSAO_REGRAS = "regras-origem-u2"  # campo "modelo" da resposta (contrato da AV1)
 VERSAO_SENTIMENTO = "lexico-origem-u2"
+VERSAO_CLASSIFICADOR = "palavras-chave-origem-u2"
 INDISPONIVEL = "Recomendações indisponíveis no momento"
 TIMEOUT_S = 2.0  # RF-08 / RNF-02
 LIMITE_PADRAO_PRODUTO = 4  # RF-05
@@ -179,6 +181,22 @@ def _sentimento_do_produto(produto_id: int) -> list[dict] | None:
     return analisadas
 
 
+def _classificar_produto(produto_id: int) -> list[dict] | None:
+    """Prévia da classificação (não grava; quem grava é o classificar.py). Lista de 1 item, ou None."""
+    produto = dados.buscar_produto(produto_id)
+    if produto is None:
+        return None
+    resultado = classificador.classificar(produto["nome"], produto["descricao"])
+    return [{
+        "id": produto_id,
+        "categoriaAtual": produto["categoria"],
+        "classe": resultado["classe"],
+        "confianca": resultado["confianca"],
+        "status": classificador.status(resultado["classe"], resultado["confianca"], produto["categoria"]),
+        "palavras": resultado["palavras"],
+    }]
+
+
 @bentoml.service(resources={"cpu": "1"})
 @bentoml.asgi_app(app, path="/api")
 class RecomendadorOrigem:
@@ -221,6 +239,18 @@ class RecomendadorOrigem:
             raise ErroHttp(404, f"Produto {produto_id} não encontrado")
         return {"produtoId": pid, "avaliacoes": analisadas, "resumo": sentimento.resumir(analisadas),
                 "modelo": VERSAO_SENTIMENTO}
+
+    @app.get("/produtos/{produto_id}/classificacao")
+    async def classificacao_do_produto(self, produto_id: str, request: Request):
+        """Categoria que o texto do produto sugere, a confiança e se precisa de revisão."""
+        if not produto_id.isdigit():
+            raise ErroHttp(404, f"Produto {produto_id} não encontrado")
+        itens = await _executar(request, _classificar_produto, produto_id=int(produto_id),
+                                _indisponivel="Classificação indisponível no momento")
+        if itens is None:
+            raise ErroHttp(404, f"Produto {produto_id} não encontrado")
+        return {"produtoId": int(produto_id), **{k: v for k, v in itens[0].items() if k != "id"},
+                "modelo": VERSAO_CLASSIFICADOR}
 
     @app.get("/recomendacoes/metricas")
     async def metricas(self, de: str | None = None, ate: str | None = None):

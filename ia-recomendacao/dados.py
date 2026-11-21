@@ -14,6 +14,7 @@ Cada função trata o caso "não encontrado" do seu jeito, sempre documentado:
 - buscar_produto: None se o produto não existe.
 - historico_do_usuario: None se o usuário não existe; [] se existe e nunca comprou.
 - listar_avaliacoes: None se o produto não existe; [] se existe e não tem avaliação.
+- gravar_classificacao: None se o produto não existe (a única que escreve).
 
 Toda chamada destas funções vira uma linha em logs/uso_dados.jsonl (uso.py).
 
@@ -47,6 +48,7 @@ _fonte: ContextVar[str] = ContextVar("fonte", default="banco")
 _SQL_PRODUTOS = """
     SELECT p.id,
            p.nome,
+           COALESCE(p.descricao, '')                 AS descricao,
            p.preco::float                            AS preco,
            img.chave_armazenamento                   AS imagem,
            c.nome                                    AS categoria,
@@ -217,6 +219,31 @@ def historicos_de_todos() -> dict[int, list[int]]:
         return {u: retrato["historico"].get(str(u), []) for u in retrato["compradores"]}
 
     return _ler(do_banco, do_retrato)
+
+
+@uso.registrado(fonte=_fonte_atual)
+def gravar_classificacao(produto_id: int, classe: str, confianca: float, status: str) -> dict | None:
+    """Grava uma classificação em classificacao_produto e devolve {"id": ...} da linha nova.
+
+    A única função que ESCREVE no banco. None se o produto não existir. Cada
+    chamada acrescenta uma linha (o histórico fica); a classificação vigente é
+    a mais recente. Com o banco fora do ar não há como gravar: o erro sobe (e
+    fica no log de uso), porque o retrato JSON é só de leitura.
+    """
+    with _conectar() as conexao:
+        existe = conexao.execute("SELECT 1 FROM produto WHERE id = %s", (produto_id,)).fetchone()
+        if existe is None:
+            return None
+        linha = conexao.execute(
+            """
+            INSERT INTO classificacao_produto (produto_id, classe, confianca, status)
+            VALUES (%s, %s, %s, %s::status_classificacao)
+            RETURNING id
+            """,
+            (produto_id, classe, confianca, status),
+        ).fetchone()
+    _fonte.set("banco")
+    return {"id": linha["id"]}
 
 
 def _ids_de_usuarios() -> list[int]:
