@@ -256,6 +256,12 @@ npm test                  # testes automatizados da API (U2)
 
 ---
 
+## FCCPD — Unidade 2: distribuição e paralelismo
+
+Arquitetura em serviços (API, worker com fila, módulo de IA, lote e banco), lote de recomendações
+paralelo com `ProcessPoolExecutor` e benchmark sequencial × paralelo (até 4,6× com 8 processos).
+Relatório, comandos e evidências em [`fccpd-u2/RELATORIO.md`](fccpd-u2/RELATORIO.md).
+
 ## Como executar o projeto (frontend, Avaliação 1)
 
 Pré-requisitos: Node.js 20+ e npm.

@@ -80,6 +80,12 @@ ver o teste falhar), reexecutou a bateria do FCCPD U1 a cada etapa e redigiu os 
 e as atualizações do Plano de Testes. A ordem das etapas, as escolhas de stack (Prisma, cookie,
 carrinho no banco, cache em memória) e o merge de cada pull request foram decisões da equipe.
 
+Também com o Claude Code, na U2: as funções de acesso do módulo de IA aos dados do Postgres
+(`ia-recomendacao/dados.py`), com o retrato JSON para o banco fora do ar e os testes delas, e a Parte 2
+do FCCPD ([`fccpd-u2/`](../fccpd-u2/RELATORIO.md)): o lote paralelo de recomendações, o gerador de
+carga, o benchmark, a coleta das evidências e o relatório. Os números do relatório saíram de
+execuções reais, conferidas pela equipe.
+
 ## 6. Outras ferramentas
 
 **ChatGPT, Gemini e GitHub Copilot** foram utilizados na entrega de FCCPD como apoio de
