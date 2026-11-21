@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
-import { useArtesao } from "@/hooks/useArtesoes";
+import { useArtesao, useIndicadoresArtesao } from "@/hooks/useArtesoes";
 import { useProdutos, useRemoverProduto } from "@/hooks/useProdutos";
 import { usePedidos } from "@/hooks/usePedidos";
 import Sidebar from "@/components/layout/Sidebar";
@@ -59,14 +59,8 @@ export default function PainelArtesaoPage() {
   } = usePedidos({ tipo: "artesao", artesaoId });
   const { remover, removendo } = useRemoverProduto();
 
-  const metricas = useMemo(() => {
-    const vendasTotais = pedidos.reduce(
-      (soma, pedido) => soma + pedido.itens.filter((item) => item.produto.artesaoId === artesaoId).reduce((sub, item) => sub + item.produto.preco * item.quantidade, 0),
-      0,
-    );
-    const pedidosPendentes = pedidos.filter((pedido) => pedido.status === "pendente" || pedido.status === "confirmado").length;
-    return { vendasTotais, produtosAtivos: produtos.filter((produto) => produto.status === "ativo").length, pedidosPendentes };
-  }, [pedidos, produtos, artesaoId]);
+  // Calculados no banco: só a parte deste artesão em cada pedido, sem os cancelados.
+  const { indicadores, recarregar: recarregarIndicadores } = useIndicadoresArtesao(usuario?.perfil === "artesao");
 
   function irParaSecao(destino: Secao) {
     setProdutoEmEdicao(null);
@@ -81,7 +75,10 @@ export default function PainelArtesaoPage() {
   async function removerProduto(produto: Produto) {
     if (!window.confirm(`Remover "${produto.nome}" do catálogo?`)) return;
     const ok = await remover(produto.id);
-    if (ok) recarregar();
+    if (ok) {
+      recarregar();
+      recarregarIndicadores();
+    }
   }
 
   async function salvarStatus(codigo: string) {
@@ -90,6 +87,7 @@ export default function PainelArtesaoPage() {
     try {
       await atualizarStatus(codigo, novoStatus);
       setStatusSelecionado((atual) => ({ ...atual, [codigo]: "" }));
+      recarregarIndicadores();
     } catch {
       // Erro já fica visível na tela via erroAtualizacao (setado dentro de atualizarStatus);
       // nada mais a fazer aqui além de deixar o statusSelecionado como estava, pra
@@ -132,9 +130,10 @@ export default function PainelArtesaoPage() {
           <section>
             <h1 className="font-display mb-6 text-3xl">Visão geral</h1>
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
-              <MetricCard label="Vendas Totais" valor={formatCurrency(metricas.vendasTotais)} />
-              <MetricCard label="Produtos Ativos" valor={String(metricas.produtosAtivos)} />
-              <MetricCard label="Pedidos Pendentes" valor={String(metricas.pedidosPendentes)} />
+              <MetricCard label="Vendas Totais" valor={indicadores ? formatCurrency(indicadores.totalVendido) : "—"} />
+              <MetricCard label="Pedidos" valor={indicadores ? String(indicadores.totalPedidos) : "—"} />
+              <MetricCard label="Produtos Ativos" valor={indicadores ? String(indicadores.produtosAtivos) : "—"} />
+              <MetricCard label="Pedidos Pendentes" valor={indicadores ? String(indicadores.pedidosPendentes) : "—"} />
             </div>
             <h2 className="font-display mb-4 mt-10 text-xl">Pedidos recentes</h2>
             {carregandoPedidos && <LoadingState variante="lista" itens={3} />}
@@ -200,6 +199,7 @@ export default function PainelArtesaoPage() {
               onSalvo={() => {
                 setProdutoEmEdicao(null);
                 recarregar();
+                recarregarIndicadores();
               }}
             />
           </section>

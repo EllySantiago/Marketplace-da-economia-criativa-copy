@@ -14,11 +14,16 @@ interface ProductManageCardProps {
  * nunca "Adicionar ao carrinho": quem está aqui é o dono do produto, não um comprador.
  */
 export default function ProductManageCard({ produto, onEditar, onRemover, removendo }: ProductManageCardProps) {
+  // "Remover" é exclusão lógica na API: o produto inativo continua aqui, fora da vitrine.
+  const inativo = produto.status === "inativo";
   return (
-    <article className="card overflow-hidden">
+    <article className={`card overflow-hidden ${inativo ? "opacity-60" : ""}`}>
       <img src={produto.imagem} alt={produto.nome} className="h-40 w-full object-cover" />
       <div className="p-4">
-        <Badge>{produto.tecnica}</Badge>
+        <div className="flex flex-wrap gap-1.5">
+          <Badge>{produto.tecnica}</Badge>
+          {inativo && <Badge className="bg-[#fee2e2] text-[#dc2626]">Fora da vitrine</Badge>}
+        </div>
         <h4 className="font-display mt-2 text-[.9375rem] font-medium leading-[1.4]">{produto.nome}</h4>
         <div className="mt-3 flex items-center justify-between">
           <span className="font-display text-base font-bold text-terracotta">{formatCurrency(produto.preco)}</span>
@@ -33,7 +38,7 @@ export default function ProductManageCard({ produto, onEditar, onRemover, remove
           <button
             type="button"
             onClick={() => onRemover(produto)}
-            disabled={removendo}
+            disabled={removendo || inativo}
             className="flex-1 border border-[#fee2e2] bg-[#FFF5F5] py-1.5 text-xs font-semibold text-[#dc2626] disabled:opacity-50"
           >
             Remover

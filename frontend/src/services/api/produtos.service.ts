@@ -1,12 +1,5 @@
 import type { FiltrosProduto, NovoProduto, Produto } from "@/types/produto";
-import { produtosMock } from "@/mocks/produtos.mock";
-import { apiFetch, delay, ApiError } from "./client";
-import { artesoesService } from "./artesoes.service";
-
-// Cópia mutável em memória: permite simular criação/edição de produtos (painel do artesão)
-// durante a sessão, sem precisar de um backend real ainda (isso chega na Avaliação 2).
-const produtos: Produto[] = [...produtosMock];
-let proximoId = Math.max(...produtos.map((produto) => produto.id)) + 1;
+import { apiFetch } from "./client";
 
 export const produtosService = {
   /** GET /produtos: só a vitrine (ativos de artesão aprovado). */
@@ -34,38 +27,21 @@ export const produtosService = {
     });
   },
 
+  /** POST /produtos (artesão). O dono vem do login: o artesaoId do corpo é ignorado pela API. */
   async criar(dados: NovoProduto): Promise<Produto> {
-    const artesao = await artesoesService.buscarPorIdInterno(dados.artesaoId);
-    const produto: Produto = {
-      ...dados,
-      id: proximoId++,
-      artesao: artesao?.nome ?? "Artesão Origem",
-      imagens: [dados.imagem],
-      status: "ativo",
-    };
-    produtos.unshift(produto);
-    return delay(produto, 400);
+    return apiFetch<Produto>("/produtos", { metodo: "POST", corpo: dados });
   },
 
-  /** Edita um produto já publicado (painel do artesão). */
+  /** PUT /produtos/:id (só o dono). Troca só a foto principal; as outras ficam. */
   async atualizar(id: number, dados: NovoProduto): Promise<Produto> {
-    const produto = produtos.find((item) => item.id === id);
-    if (!produto) {
-      await delay(null, 300);
-      throw new ApiError(`Produto ${id} não encontrado.`);
-    }
-    Object.assign(produto, dados, { imagens: [dados.imagem] });
-    return delay(produto, 350);
+    return apiFetch<Produto>(`/produtos/${id}`, { metodo: "PUT", corpo: dados });
   },
 
-  /** Remove um produto do catálogo (painel do artesão). */
+  /**
+   * DELETE /produtos/:id (só o dono): exclusão LÓGICA. O produto fica inativo, some da vitrine e
+   * continua no painel e nos pedidos antigos (a chave estrangeira de item_pedido impede apagar).
+   */
   async remover(id: number): Promise<void> {
-    const indice = produtos.findIndex((item) => item.id === id);
-    if (indice === -1) {
-      await delay(null, 250);
-      throw new ApiError(`Produto ${id} não encontrado.`);
-    }
-    produtos.splice(indice, 1);
-    await delay(null, 300);
+    await apiFetch<void>(`/produtos/${id}`, { metodo: "DELETE" });
   },
 };

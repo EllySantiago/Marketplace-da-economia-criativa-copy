@@ -5,7 +5,20 @@ import { apiFetch, delay, ApiError } from "./client";
 const artesoes: Artesao[] = [...artesoesMock];
 let proximoId = Math.max(...artesoes.map((artesao) => artesao.id)) + 1;
 
+/** Números do painel do artesão, calculados no banco (só a parte dele, sem pedidos cancelados). */
+export interface IndicadoresArtesao {
+  totalVendido: number;
+  totalPedidos: number;
+  pedidosPendentes: number;
+  produtosAtivos: number;
+}
+
 export const artesoesService = {
+  /** GET /artesoes/eu/indicadores (artesão logado). */
+  async indicadores(): Promise<IndicadoresArtesao> {
+    return apiFetch<IndicadoresArtesao>("/artesoes/eu/indicadores");
+  },
+
   /** Só retorna artesãos já aprovados pela administração — é o que aparece na vitrine pública. */
   async listarTodos(): Promise<Artesao[]> {
     return apiFetch<Artesao[]>("/artesoes");
@@ -14,32 +27,6 @@ export const artesoesService = {
   /** GET /artesoes/:id: avaliação média, vendas e produtos são calculados pela API. */
   async buscarPorId(id: number): Promise<Artesao> {
     return apiFetch<Artesao>(`/artesoes/${id}`);
-  },
-
-  /** Usado internamente pelo cadastro (usuariosService.registrar) e por telas que já sabem o id. */
-  async buscarPorIdInterno(id: number): Promise<Artesao | undefined> {
-    return delay(artesoes.find((item) => item.id === id));
-  },
-
-  /** Cria o registro de artesão associado a um novo cadastro — entra sempre como não aprovado. */
-  async criarPendente(dados: DadosNovoArtesao): Promise<Artesao> {
-    const artesao: Artesao = {
-      id: proximoId++,
-      nome: dados.nome,
-      cidade: dados.cidade || "A definir",
-      regiao: dados.regiao || "A definir",
-      biografia: dados.biografia ?? "",
-      fotoUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=240&h=240&fit=crop&auto=format",
-      capaUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=1400&h=400&fit=crop&auto=format",
-      tecnicas: dados.tecnicas ?? [],
-      avaliacaoMedia: 0,
-      totalVendas: 0,
-      totalProdutos: 0,
-      desde: new Date().getFullYear(),
-      aprovado: false,
-    };
-    artesoes.push(artesao);
-    return delay(artesao, 400);
   },
 
   /** Fila de aprovação exibida no Painel Administrativo. */
