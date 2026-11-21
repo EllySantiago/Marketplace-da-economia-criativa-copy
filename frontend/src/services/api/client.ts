@@ -73,10 +73,3 @@ export async function apiFetch<T>(caminho: string, { metodo = "GET", corpo, quer
   return dados as T;
 }
 
-/**
- * Latência simulada da Fake API da U1. Só os services ainda não migrados a usam;
- * sai junto com os mocks na G.8.
- */
-export function delay<T>(valor: T, ms = 300 + Math.round(Math.random() * 200)): Promise<T> {
-  return new Promise((resolve) => setTimeout(() => resolve(valor), ms));
-}
