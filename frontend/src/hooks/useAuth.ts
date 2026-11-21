@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useAuthStore } from "@/store/authStore";
+import { useCartStore } from "@/store/cartStore";
 import { usuariosService } from "@/services/api/usuarios.service";
 import { ApiError } from "@/services/api/client";
 import type { CredenciaisLogin, DadosCadastro } from "@/types/usuario";
@@ -60,7 +61,10 @@ export function useAuth() {
     } catch {
       // sem rede: o cookie vence sozinho em 8 h; aqui o importante é a tela sair da conta
     }
+    const eraComprador = useAuthStore.getState().usuario?.perfil === "comprador";
     limparSessao();
+    // O carrinho do comprador está salvo no servidor: não fica neste navegador para a próxima pessoa.
+    if (eraComprador) useCartStore.getState().limparCarrinho();
   }, [limparSessao]);
 
   return { usuario, estaAutenticado: Boolean(usuario), carregando, erro, entrar, cadastrar, sair };

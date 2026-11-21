@@ -1,5 +1,5 @@
 import type { ItemCarrinho } from "@/types/carrinho";
-import { produtosService } from "./produtos.service";
+import { apiFetch } from "./client";
 
 export interface ProblemaEstoque {
   produtoId: number;
@@ -8,26 +8,29 @@ export interface ProblemaEstoque {
   solicitado: number;
 }
 
+/** O que a API recebe: só produto e quantidade (o preço é sempre o do banco). */
+const paraEnvio = (itens: ItemCarrinho[]) => itens.map((item) => ({ produtoId: item.produto.id, quantidade: item.quantidade }));
+
 /**
- * Revalida o estoque atual de cada item antes do checkout — os dados do carrinho ficam
- * em cache no navegador (Zustand + localStorage) e podem estar desatualizados em relação
- * à Fake API. Retorna a lista de itens que não podem mais ser atendidos como solicitado.
+ * Carrinho do comprador logado, salvo no banco (docs/api.md, seção 6). Quem não está logado fica
+ * só com o carrinho do navegador (Zustand + localStorage), que é enviado logo depois do login.
  */
 export const carrinhoService = {
+  /** GET /carrinho (comprador). */
+  async obter(): Promise<ItemCarrinho[]> {
+    return apiFetch<ItemCarrinho[]>("/carrinho");
+  },
+
+  /** PUT /carrinho: substitui o carrinho inteiro (lista vazia = esvaziar). */
+  async salvar(itens: ItemCarrinho[]): Promise<ItemCarrinho[]> {
+    return apiFetch<ItemCarrinho[]>("/carrinho", { metodo: "PUT", corpo: { itens: paraEnvio(itens) } });
+  },
+
+  /**
+   * POST /carrinho/validar: confere o estoque ATUAL de cada item antes do checkout. O carrinho
+   * não reserva estoque, então outra pessoa pode ter comprado a peça. Lista vazia = tudo certo.
+   */
   async validarEstoque(itens: ItemCarrinho[]): Promise<ProblemaEstoque[]> {
-    const produtosAtuais = await produtosService.listarTodos();
-    const problemas: ProblemaEstoque[] = [];
-    for (const item of itens) {
-      const atual = produtosAtuais.find((produto) => produto.id === item.produto.id);
-      if (!atual || atual.estoque < item.quantidade) {
-        problemas.push({
-          produtoId: item.produto.id,
-          nome: item.produto.nome,
-          disponivel: atual?.estoque ?? 0,
-          solicitado: item.quantidade,
-        });
-      }
-    }
-    return problemas;
+    return apiFetch<ProblemaEstoque[]>("/carrinho/validar", { metodo: "POST", corpo: { itens: paraEnvio(itens) } });
   },
 };

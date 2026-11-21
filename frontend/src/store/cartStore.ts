@@ -9,6 +9,8 @@ interface CartState {
   removerItem: (produtoId: number) => void;
   alterarQuantidade: (produtoId: number, quantidade: number) => void;
   limparCarrinho: () => void;
+  /** Troca a lista inteira (usado ao receber o carrinho salvo no servidor). */
+  substituirItens: (itens: ItemCarrinho[]) => void;
 }
 
 export const useCartStore = create<CartState>()(
@@ -43,6 +45,8 @@ export const useCartStore = create<CartState>()(
         }),
 
       limparCarrinho: () => set({ itens: [] }),
+
+      substituirItens: (itens) => set({ itens }),
     }),
     { name: "origem:carrinho" },
   ),
