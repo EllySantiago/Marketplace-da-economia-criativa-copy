@@ -25,7 +25,10 @@ export default function ProductDetails({ produtoId }: { produtoId: number }) {
     setImagemSelecionada(0);
     if (!produto) return;
     let ativo = true;
-    recomendacoesService.recomendarSimilares(produto.id, 3).then((resultado) => ativo && setRelacionados(resultado));
+    recomendacoesService
+      .recomendarSimilares(produto.id, 3)
+      .then((resultado) => ativo && setRelacionados(resultado))
+      .catch(() => ativo && setRelacionados([]));
     return () => {
       ativo = false;
     };

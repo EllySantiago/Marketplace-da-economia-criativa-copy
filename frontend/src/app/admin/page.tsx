@@ -4,8 +4,8 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { useArtesoes, useArtesoesPendentes } from "@/hooks/useArtesoes";
-import { useProdutos } from "@/hooks/useProdutos";
 import { usePedidos } from "@/hooks/usePedidos";
+import { useClassificacoes, useIndicadoresAdmin } from "@/hooks/useAdmin";
 import Sidebar from "@/components/layout/Sidebar";
 import OrderStatus from "@/components/pedido/OrderStatus";
 import LoadingState from "@/components/feedback/LoadingState";
@@ -15,12 +15,13 @@ import { formatCurrency } from "@/utils/formatCurrency";
 import { formatDateShort } from "@/utils/formatDate";
 import { ROTAS } from "@/constants/rotas";
 
-type Secao = "overview" | "artesoes" | "pedidos";
+type Secao = "overview" | "artesoes" | "pedidos" | "classificacao";
 
 const itensMenu = [
   { id: "overview", label: "Dashboard", icone: "▦" },
   { id: "artesoes", label: "Artesãos", icone: "👥" },
   { id: "pedidos", label: "Pedidos", icone: "📊" },
+  { id: "classificacao", label: "Classificação (IA)", icone: "🏷" },
 ] as const;
 
 function MetricCard({ label, valor }: { label: string; valor: string }) {
@@ -38,26 +39,85 @@ export default function AdminPage() {
 
   const { artesoes, carregando: carregandoArtesoes, erro: erroArtesoes } = useArtesoes();
   const { pendentes, carregando: carregandoPendentes, aprovar, rejeitar } = useArtesoesPendentes();
-  const { produtos } = useProdutos();
   const { pedidos, carregando: carregandoPedidos, erro: erroPedidos } = usePedidos({ tipo: "todos" });
+  const ehAdmin = usuario?.perfil === "administrador";
+  // Totais da plataforma vêm da view vw_indicadores_admin (GET /admin/indicadores).
+  const { indicadores, recarregar: recarregarIndicadores } = useIndicadoresAdmin(ehAdmin);
+  const classificacao = useClassificacoes(ehAdmin && secao === "classificacao");
 
-  const metricas = useMemo(() => {
-    const receitaTotal = pedidos.filter((pedido) => pedido.status !== "cancelado").reduce((soma, pedido) => soma + pedido.total, 0);
-    const ticketMedio = pedidos.length ? receitaTotal / pedidos.length : 0;
-    return {
-      totalArtesoes: artesoes.length,
-      produtosAtivos: produtos.filter((produto) => produto.status === "ativo").length,
-      totalPedidos: pedidos.length,
-      receitaTotal,
-      ticketMedio,
-      aprovacoesPendentes: pendentes.length,
-    };
-  }, [artesoes, produtos, pedidos, pendentes]);
+  const ticketMedio = useMemo(() => {
+    const validos = pedidos.filter((pedido) => pedido.status !== "cancelado").length;
+    return indicadores && validos ? indicadores.totalVendas / validos : 0;
+  }, [pedidos, indicadores]);
+
+  async function aprovarERecarregar(id: number) {
+    await aprovar(id);
+    recarregarIndicadores();
+  }
+
+  async function rejeitarERecarregar(id: number) {
+    await rejeitar(id);
+    recarregarIndicadores();
+  }
 
   if (!estaAutenticado || !usuario || usuario.perfil !== "administrador") {
     return (
       <main className="mx-auto max-w-[600px] px-6 py-20">
         <EmptyState titulo="Área exclusiva da administração" mensagem="Entre com uma conta de administrador para acessar o painel." acaoHref={ROTAS.login} acaoLabel="Entrar" />
+        {secao === "classificacao" && (
+          <section>
+            <h1 className="font-display mb-2 text-3xl">Classificação automática</h1>
+            <p className="mb-6 max-w-[720px] text-sm text-[#888]">
+              O módulo de IA lê o nome e a descrição de cada peça e sugere uma categoria. As que não batem com a categoria cadastrada, ou com confiança baixa, aparecem primeiro para revisão.
+            </p>
+            {classificacao.carregando && <LoadingState variante="lista" itens={4} />}
+            {!classificacao.carregando && classificacao.erro && <ErrorState mensagem={classificacao.erro} onTentarNovamente={classificacao.recarregar} />}
+            {!classificacao.carregando && !classificacao.erro && classificacao.indisponivel && (
+              <ErrorState titulo="Classificação indisponível" mensagem="O módulo de IA não respondeu. Tente de novo em alguns instantes." onTentarNovamente={classificacao.recarregar} />
+            )}
+            {!classificacao.carregando && !classificacao.erro && !classificacao.indisponivel && classificacao.itens.length === 0 && <EmptyState titulo="Nenhum produto na vitrine" />}
+            {!classificacao.carregando && classificacao.itens.length > 0 && (
+              <div className="overflow-x-auto bg-white">
+                <table className="w-full">
+                  <thead>
+                    <tr className="table-row">
+                      <th>Produto</th>
+                      <th>Categoria cadastrada</th>
+                      <th>Sugerida pela IA</th>
+                      <th>Confiança</th>
+                      <th>Situação</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {classificacao.itens.map((item) => (
+                      <tr key={item.produtoId} className="table-row">
+                        <td>
+                          <Link href={ROTAS.produto(item.produtoId)} className="hover:text-terracotta">
+                            {item.nome}
+                            <span className="block text-xs text-[#888]">{item.artesao}</span>
+                          </Link>
+                        </td>
+                        <td>{item.categoriaAtual}</td>
+                        <td>
+                          {item.classe}
+                          {item.palavras.length > 0 && <span className="block text-xs text-[#888]">{item.palavras.slice(0, 3).join(", ")}</span>}
+                        </td>
+                        <td>{Math.round(item.confianca * 100)}%</td>
+                        <td>
+                          {item.status === "revisao" ? (
+                            <span className="rounded-sm bg-[#FEF3C7] px-2 py-1 text-xs font-bold text-[#92400E]">Revisar</span>
+                          ) : (
+                            <span className="rounded-sm bg-[#D8F3DC] px-2 py-1 text-xs font-bold text-green">Confere</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+        )}
       </main>
     );
   }
@@ -83,12 +143,13 @@ export default function AdminPage() {
           <section>
             <h1 className="font-display mb-6 text-3xl">Dashboard</h1>
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
-              <MetricCard label="Total de Artesãos" valor={String(metricas.totalArtesoes)} />
-              <MetricCard label="Produtos Publicados" valor={String(metricas.produtosAtivos)} />
-              <MetricCard label="Total de Pedidos" valor={String(metricas.totalPedidos)} />
-              <MetricCard label="Receita da Plataforma" valor={formatCurrency(metricas.receitaTotal)} />
-              <MetricCard label="Aprovações Pendentes" valor={String(metricas.aprovacoesPendentes)} />
-              <MetricCard label="Ticket Médio" valor={formatCurrency(metricas.ticketMedio)} />
+              <MetricCard label="Artesãos na Vitrine" valor={String(artesoes.length)} />
+              <MetricCard label="Usuários Cadastrados" valor={indicadores ? String(indicadores.totalUsuarios) : "—"} />
+              <MetricCard label="Produtos Publicados" valor={indicadores ? String(indicadores.produtosAtivos) : "—"} />
+              <MetricCard label="Total de Pedidos" valor={indicadores ? String(indicadores.totalPedidos) : "—"} />
+              <MetricCard label="Receita da Plataforma" valor={indicadores ? formatCurrency(indicadores.totalVendas) : "—"} />
+              <MetricCard label="Aprovações Pendentes" valor={String(pendentes.length)} />
+              <MetricCard label="Ticket Médio" valor={formatCurrency(ticketMedio)} />
             </div>
 
             <div className="mt-10 bg-white">
@@ -113,10 +174,10 @@ export default function AdminPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <button type="button" onClick={() => aprovar(pendente.id)} className="rounded-sm bg-green px-3.5 py-1.5 text-xs font-bold text-white">
+                      <button type="button" onClick={() => aprovarERecarregar(pendente.id)} className="rounded-sm bg-green px-3.5 py-1.5 text-xs font-bold text-white">
                         Aprovar
                       </button>
-                      <button type="button" onClick={() => rejeitar(pendente.id)} className="rounded-sm border border-[#fee2e2] bg-[#FFF5F5] px-3.5 py-1.5 text-xs font-bold text-[#dc2626]">
+                      <button type="button" onClick={() => rejeitarERecarregar(pendente.id)} className="rounded-sm border border-[#fee2e2] bg-[#FFF5F5] px-3.5 py-1.5 text-xs font-bold text-[#dc2626]">
                         Rejeitar
                       </button>
                     </div>

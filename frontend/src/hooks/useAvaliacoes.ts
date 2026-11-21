@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Avaliacao } from "@/types/avaliacao";
 import { avaliacoesService, type NovaAvaliacao } from "@/services/api/avaliacoes.service";
+import { analisesService, type Sentimento } from "@/services/api/analises.service";
 
 /** Lista as avaliações de um produto, tratando carregando/erro/vazio. */
 export function useAvaliacoes(produtoId: number) {
@@ -45,4 +46,25 @@ export function useCriarAvaliacao() {
   }, []);
 
   return { criar, enviando, erro };
+}
+
+/**
+ * Sentimento das avaliações calculado pelo módulo de IA (GET /produtos/:id/sentimento). `versao`
+ * muda quando uma avaliação nova entra, para recalcular. IA fora ou erro: null (a tela esconde o selo).
+ */
+export function useSentimento(produtoId: number, versao = 0) {
+  const [sentimento, setSentimento] = useState<Sentimento | null>(null);
+
+  useEffect(() => {
+    let ativo = true;
+    analisesService
+      .sentimento(produtoId)
+      .then((resultado) => ativo && setSentimento(resultado.fonte === "ia" ? resultado : null))
+      .catch(() => ativo && setSentimento(null));
+    return () => {
+      ativo = false;
+    };
+  }, [produtoId, versao]);
+
+  return sentimento;
 }
