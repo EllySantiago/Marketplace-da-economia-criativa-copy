@@ -86,6 +86,13 @@ do FCCPD ([`fccpd-u2/`](../fccpd-u2/RELATORIO.md)): o lote paralelo de recomenda
 carga, o benchmark, a coleta das evidências e o relatório. Os números do relatório saíram de
 execuções reais, conferidas pela equipe.
 
+Ainda com o Claude Code, para o Projeto Final de IA (U2): o log de uso dos dados
+(`ia-recomendacao/uso.py`), o resumo do log com as respostas (a), (b) e (c) (`resumo.py`), a análise de
+sentimento e a classificação por regra (`sentimento.py`, `classificador.py`), as métricas dos três
+modelos e a interpretação delas (`metricas.py`, `METRICAS.md`), os conjuntos rotulados (textos fictícios
+e rótulos propostos pela IA e revisados pela equipe) e o README do módulo. As regras foram congeladas
+num commit antes de escrever os conjuntos de teste, para as métricas não serem otimistas.
+
 ## 6. Outras ferramentas
 
 **ChatGPT, Gemini e GitHub Copilot** foram utilizados na entrega de FCCPD como apoio de

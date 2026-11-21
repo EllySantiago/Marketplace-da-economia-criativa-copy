@@ -119,7 +119,7 @@ async def _executar(request: Request, funcao, *, _indisponivel: str = INDISPONIV
         raise ErroHttp(503, _indisponivel) from None
     duracao = (time.perf_counter() - inicio) * 1000
     if itens is None:
-        uso.registrar(nome, parametros, "nao-encontrado", duracao_ms=duracao)
+        uso.registrar(nome, parametros, "nao-encontrado", fonte=dados.ULTIMA_FONTE, duracao_ms=duracao)
     else:
         uso.registrar(nome, parametros, "sucesso", len(itens), [item["id"] for item in itens],
                       dados.ULTIMA_FONTE, duracao_ms=duracao)
