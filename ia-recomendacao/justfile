@@ -28,9 +28,9 @@ resumo:
 classificar:
     uv run python classificar.py --gravar
 
-# Métricas dos modelos por regra (sentimento; classificação a partir da H2.5).
+# Métricas dos três modelos (recomendação, sentimento, classificação) → resultados/metricas.md
 metricas:
-    uv run python metricas.py
+    uv run python metricas.py --saida resultados/metricas.md
 
 # Regera o retrato dados/catalogo.json a partir do banco (usado quando o banco está fora do ar).
 retrato:
