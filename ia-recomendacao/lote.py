@@ -30,6 +30,7 @@ from pathlib import Path
 
 import dados
 import recomendador
+import uso
 
 LIMITE = 8  # o mesmo padrão da rota /usuarios/{id}/recomendados
 SAIDA = Path(__file__).resolve().parent / "logs" / "lote_recomendacoes.json"
@@ -96,6 +97,7 @@ def main() -> None:
     parser.add_argument("--processos", type=int, default=1, help="1 = sequencial (padrão)")
     parser.add_argument("--limite", type=int, default=LIMITE)
     args = parser.parse_args()
+    uso.quem_chamou.set("lote")  # as leituras do lote aparecem assim no log de uso
     r = executar(args.processos, args.limite)
     print(f"{r['compradores']} compradores × {r['produtos']} produtos, {r['processos']} processo(s), dados do {r['fonte']}")
     print(f"leitura {r['leitura_s']:.3f} s · cálculo {r['calculo_s']:.3f} s · "

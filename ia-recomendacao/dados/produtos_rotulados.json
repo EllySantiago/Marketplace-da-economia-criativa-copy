@@ -1,0 +1,17 @@
+{
+  "descricao": "Produtos fictícios com a categoria certa dada à mão, para medir a classificação por palavras-chave (classificador.py) fora do catálogo do seed. Foram escritos depois que as palavras-chave ficaram congeladas (commit 7b87ca3), sem ajustar a regra a eles. O conjunto de desenvolvimento são os 13 produtos do seed, lidos por dados.listar_produtos().",
+  "produtos": [
+    {"id": 1001, "categoria": "Cerâmica", "nome": "Moringa de Tracunhaém", "descricao": "Moringa modelada à mão e queimada em forno a lenha, mantém a água fresca."},
+    {"id": 1002, "categoria": "Cerâmica", "nome": "Galo de Tracunhaém", "descricao": "Figura decorativa modelada em argila, com acabamento rústico."},
+    {"id": 1003, "categoria": "Cerâmica", "nome": "Conjunto de Pratos Pintados", "descricao": "Quatro pratos de louça com pintura floral feita à mão, podem ir ao micro-ondas."},
+    {"id": 1004, "categoria": "Madeira", "nome": "Colher de Pau em Imburana", "descricao": "Colher feita à mão, lixada e finalizada com óleo vegetal."},
+    {"id": 1005, "categoria": "Madeira", "nome": "Santo de Ex-voto", "descricao": "Imagem talhada a canivete por mestre da Zona da Mata."},
+    {"id": 1006, "categoria": "Madeira", "nome": "Fruteira de Mesa", "descricao": "Fruteira torneada em peça única, com veios aparentes."},
+    {"id": 1007, "categoria": "Renda", "nome": "Toalhinha de Labirinto", "descricao": "Toalha pequena em labirinto, feita em tear de bastidor pelas rendeiras da Paraíba."},
+    {"id": 1008, "categoria": "Renda", "nome": "Gola de Renda Irlandesa", "descricao": "Gola delicada para vestido, acabamento em cordão."},
+    {"id": 1009, "categoria": "Renda", "nome": "Jogo Americano de Fuxico", "descricao": "Quatro peças coloridas costuradas à mão."},
+    {"id": 1010, "categoria": "Couro", "nome": "Chapéu de Vaqueiro", "descricao": "Chapéu tradicional do sertão, com barbicacho e estrelas recortadas."},
+    {"id": 1011, "categoria": "Couro", "nome": "Sandália de Rabicho", "descricao": "Sandália com solado reforçado, costurada à mão em Nova Olinda."},
+    {"id": 1012, "categoria": "Couro", "nome": "Porta-documentos Sertanejo", "descricao": "Carteira de bolso em couro legítimo, com gravação feita a fogo."}
+  ]
+}

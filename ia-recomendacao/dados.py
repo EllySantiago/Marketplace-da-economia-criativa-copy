@@ -14,6 +14,9 @@ Cada função trata o caso "não encontrado" do seu jeito, sempre documentado:
 - buscar_produto: None se o produto não existe.
 - historico_do_usuario: None se o usuário não existe; [] se existe e nunca comprou.
 - listar_avaliacoes: None se o produto não existe; [] se existe e não tem avaliação.
+- gravar_classificacao: None se o produto não existe (a única que escreve).
+
+Toda chamada destas funções vira uma linha em logs/uso_dados.jsonl (uso.py).
 
 Nada de dado pessoal sai daqui (RNF-03): o histórico é só uma lista de ids de
 produto, e as avaliações não trazem quem avaliou.
@@ -23,15 +26,21 @@ from __future__ import annotations
 
 import json
 import os
+from contextvars import ContextVar
 from pathlib import Path
 
 import psycopg
 from psycopg.rows import dict_row
 
+import uso
+
 DATABASE_URL = os.environ.get("DATABASE_URL", "postgres://origem:origem@localhost:5434/origem")
 TIMEOUT_CONEXAO_S = 1  # abaixo do teto de 2 s do RF-08: sobra tempo para usar o retrato
 RETRATO = Path(__file__).resolve().parent / "dados" / "catalogo.json"
 ULTIMA_FONTE = "banco"  # "banco" ou "retrato"
+# A mesma informação por thread/requisição, para o log de uso não misturar
+# a fonte de duas requisições simultâneas.
+_fonte: ContextVar[str] = ContextVar("fonte", default="banco")
 
 # Um produto no formato que o recomendador usa. `vendas` conta as unidades
 # vendidas em pedidos não cancelados; `notaMedia` é 0 quando não há avaliação.
@@ -39,6 +48,7 @@ ULTIMA_FONTE = "banco"  # "banco" ou "retrato"
 _SQL_PRODUTOS = """
     SELECT p.id,
            p.nome,
+           COALESCE(p.descricao, '')                 AS descricao,
            p.preco::float                            AS preco,
            img.chave_armazenamento                   AS imagem,
            c.nome                                    AS categoria,
@@ -86,13 +96,20 @@ def _ler(do_banco, do_retrato):
     try:
         resultado = do_banco()
         ULTIMA_FONTE = "banco"
+        _fonte.set("banco")
         return resultado
     except psycopg.OperationalError:
-        retrato = json.loads(RETRATO.read_text(encoding="utf-8"))
         ULTIMA_FONTE = "retrato"
+        _fonte.set("retrato")
+        retrato = json.loads(RETRATO.read_text(encoding="utf-8"))
         return do_retrato(retrato)
 
 
+def _fonte_atual() -> str:
+    return _fonte.get()
+
+
+@uso.registrado(em_massa=True, fonte=_fonte_atual)
 def listar_produtos() -> list[dict]:
     """Todos os produtos do catálogo, inclusive inativos e sem estoque.
 
@@ -106,6 +123,7 @@ def listar_produtos() -> list[dict]:
     return _ler(do_banco, lambda retrato: retrato["produtos"])
 
 
+@uso.registrado(fonte=_fonte_atual)
 def buscar_produto(produto_id: int) -> dict | None:
     """Um produto pelo id, no mesmo formato de listar_produtos. None se não existir."""
     def do_banco():
@@ -118,6 +136,7 @@ def buscar_produto(produto_id: int) -> dict | None:
     return _ler(do_banco, do_retrato)
 
 
+@uso.registrado(fonte=_fonte_atual)
 def historico_do_usuario(usuario_id: int) -> list[int] | None:
     """Ids dos produtos que o usuário comprou, sem repetir, na ordem da primeira compra.
 
@@ -150,6 +169,7 @@ def historico_do_usuario(usuario_id: int) -> list[int] | None:
     return _ler(do_banco, do_retrato)
 
 
+@uso.registrado(em_massa=True, fonte=_fonte_atual)
 def listar_compradores() -> list[int]:
     """Ids de todos os usuários com perfil comprador, em ordem. Lista vazia se não houver.
 
@@ -164,6 +184,7 @@ def listar_compradores() -> list[int]:
     return _ler(do_banco, lambda retrato: retrato["compradores"])
 
 
+@uso.registrado(em_massa=True, fonte=_fonte_atual)
 def historicos_de_todos() -> dict[int, list[int]]:
     """Histórico de TODOS os compradores numa consulta só: {usuario_id: [ids de produto]}.
 
@@ -200,12 +221,38 @@ def historicos_de_todos() -> dict[int, list[int]]:
     return _ler(do_banco, do_retrato)
 
 
+@uso.registrado(fonte=_fonte_atual)
+def gravar_classificacao(produto_id: int, classe: str, confianca: float, status: str) -> dict | None:
+    """Grava uma classificação em classificacao_produto e devolve {"id": ...} da linha nova.
+
+    A única função que ESCREVE no banco. None se o produto não existir. Cada
+    chamada acrescenta uma linha (o histórico fica); a classificação vigente é
+    a mais recente. Com o banco fora do ar não há como gravar: o erro sobe (e
+    fica no log de uso), porque o retrato JSON é só de leitura.
+    """
+    with _conectar() as conexao:
+        existe = conexao.execute("SELECT 1 FROM produto WHERE id = %s", (produto_id,)).fetchone()
+        if existe is None:
+            return None
+        linha = conexao.execute(
+            """
+            INSERT INTO classificacao_produto (produto_id, classe, confianca, status)
+            VALUES (%s, %s, %s, %s::status_classificacao)
+            RETURNING id
+            """,
+            (produto_id, classe, confianca, status),
+        ).fetchone()
+    _fonte.set("banco")
+    return {"id": linha["id"]}
+
+
 def _ids_de_usuarios() -> list[int]:
     """Uso interno do exportar.py: ids de todos os usuários, para o retrato saber quem existe."""
     with _conectar() as conexao:
         return [linha["id"] for linha in conexao.execute("SELECT id FROM usuario ORDER BY id").fetchall()]
 
 
+@uso.registrado(fonte=_fonte_atual)
 def listar_avaliacoes(produto_id: int) -> list[dict] | None:
     """Avaliações de um produto, da mais nova para a mais antiga, sem identificar quem avaliou.
 

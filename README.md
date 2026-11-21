@@ -12,6 +12,12 @@ BentoML** da disciplina de IA. O andamento da U2 está em [`docs/plano-u2.md`](d
 
 ## IA — AV2: mockup do módulo de recomendação (Trilha A, BentoML)
 
+> **Projeto Final de IA (U2, entrega em 27/11):** o módulo agora também faz análise de
+> sentimento e classificação, registra cada uso dos dados em `logs/uso_dados.jsonl` e tem um
+> resumo do log com as respostas (a), (b) e (c). Instalação, dicionário de dados, funções,
+> as três chamadas do log, o resumo e as métricas estão no
+> **[README do módulo](ia-recomendacao/README.md)**. Esta seção continua valendo para a AV2.
+
 | | |
 |---|---|
 | **Grupo** | Origem |
@@ -66,7 +72,7 @@ Deixe o `just serve` aberto e use outro terminal para os testes. A documentaçã
 Com o serviço no ar (`just serve`), copie e cole cada comando. Os resultados abaixo são os
 obtidos com o catálogo do repositório. Para rodar todos de uma vez e ver OK/FALHOU:
 `just testes` (= `bash testes/casos.sh`, dentro de `ia-recomendacao/`). O script confere
-os mesmos 8 casos, na mesma ordem; o caso 6 aparece em duas linhas (401 e 403) e, no caso 4,
+os mesmos 8 casos, na mesma ordem, e mais os casos 9 e 10 (sentimento) da U2; o caso 6 aparece em duas linhas (401 e 403) e, no caso 4,
 ele também falha se a resposta passar de 3 s.
 
 **Caso 1 — caminho feliz: peças relacionadas ao produto 1 (RF-01, RF-04, RF-07).** O produto 1

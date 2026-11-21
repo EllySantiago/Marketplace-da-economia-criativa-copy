@@ -16,6 +16,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import dados  # noqa: E402
+import uso  # noqa: E402
+
+uso.quem_chamou.set("teste")
+uso.ativo.set(False)  # estes testes não escrevem no log de uso (quem testa o log é test_uso.py)
 
 BANCO_DESLIGADO = "postgres://origem:origem@127.0.0.1:1/origem"
 

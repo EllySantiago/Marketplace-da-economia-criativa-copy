@@ -14,8 +14,23 @@ testes:
     bash testes/casos.sh
 
 testes-dados:
-    # Funções de acesso, lendo o banco e o retrato (precisa do banco no ar).
+    # Funções de acesso (banco e retrato) e log de uso (precisa do banco no ar).
     uv run python testes/test_dados.py
+    uv run python testes/test_uso.py
+    uv run python testes/test_sentimento.py
+    uv run python testes/test_classificador.py
+
+# Resumo do log de uso (logs/uso_dados.jsonl): chamadas por função, erros e as respostas (a), (b), (c).
+resumo:
+    uv run python resumo.py
+
+# Classifica os produtos por palavras-chave e grava em classificacao_produto (precisa do banco no ar).
+classificar:
+    uv run python classificar.py --gravar
+
+# Métricas dos três modelos (recomendação, sentimento, classificação) → resultados/metricas.md
+metricas:
+    uv run python metricas.py --saida resultados/metricas.md
 
 # Regera o retrato dados/catalogo.json a partir do banco (usado quando o banco está fora do ar).
 retrato:

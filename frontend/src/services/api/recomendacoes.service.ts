@@ -16,7 +16,13 @@ interface RespostaModulo {
 
 /** Pede ao módulo de IA; erro, 404 ou timeout são tratados por quem chama. */
 async function viaModuloIA(caminho: string, headers?: HeadersInit): Promise<Produto[]> {
-  const resposta = await fetch(`${URL_MODULO_IA}/api/${caminho}`, { headers, signal: AbortSignal.timeout(TIMEOUT_MS) });
+  // X-Origem-Chamador: só diz ao log de uso da IA que a chamada veio do frontend.
+  const cabecalhos = new Headers(headers);
+  cabecalhos.set("X-Origem-Chamador", "frontend");
+  const resposta = await fetch(`${URL_MODULO_IA}/api/${caminho}`, {
+    headers: cabecalhos,
+    signal: AbortSignal.timeout(TIMEOUT_MS),
+  });
   if (!resposta.ok) throw new Error(`módulo de recomendação respondeu ${resposta.status}`);
   const { recomendacoes } = (await resposta.json()) as RespostaModulo;
 

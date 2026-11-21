@@ -23,10 +23,16 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+import classificador
 import dados
 import recomendador
+import sentimento
+import uso
 
 VERSAO_REGRAS = "regras-origem-u2"  # campo "modelo" da resposta (contrato da AV1)
+VERSAO_SENTIMENTO = "lexico-origem-u2"
+VERSAO_CLASSIFICADOR = "palavras-chave-origem-u2"
+INDISPONIVEL = "Recomendações indisponíveis no momento"
 TIMEOUT_S = 2.0  # RF-08 / RNF-02
 LIMITE_PADRAO_PRODUTO = 4  # RF-05
 LIMITE_PADRAO_USUARIO = 8
@@ -78,21 +84,46 @@ def _usuario_autenticado(request: Request) -> int | None:
         return None
 
 
-async def _executar(request: Request, funcao, *args) -> list[dict]:
-    """RF-08: roda a estratégia com timeout de 2 s; erro ou lentidão viram 503."""
-    simular = request.headers.get("x-simular-falha", "")  # só para o caso de teste do RF-08
+def _definir_chamador(request: Request) -> None:
+    """Quem chamou, para o log de uso: header X-Origem-Chamador (backend, frontend, teste...)."""
+    valor = request.headers.get("x-origem-chamador", "").strip().lower()
+    uso.quem_chamou.set(valor if valor in uso.CHAMADORES else "api")
 
-    def tarefa() -> list[dict]:
+
+async def _executar(request: Request, funcao, *, _indisponivel: str = INDISPONIVEL,
+                    **parametros) -> list[dict] | None:
+    """RF-08: roda a estratégia com timeout de 2 s; erro ou lentidão viram 503.
+
+    Cada execução vira uma linha no log de uso (uso.py), com o nome da
+    estratégia, os parâmetros, os ids devolvidos e, se falhar, o motivo. As
+    funções de dados chamadas lá dentro registram as próprias linhas.
+    """
+    simular = request.headers.get("x-simular-falha", "")  # só para o caso de teste do RF-08
+    _definir_chamador(request)
+    nome = funcao.__name__.lstrip("_")
+
+    def tarefa() -> list[dict] | None:
         if simular == "lentidao":
             time.sleep(TIMEOUT_S + 1)
         if simular == "erro":
-            raise RuntimeError("falha simulada")
-        return funcao(*args)
+            raise RuntimeError("falha simulada (header X-Simular-Falha)")
+        return funcao(**parametros)
 
+    inicio = time.perf_counter()
     try:
-        return await asyncio.wait_for(asyncio.to_thread(tarefa), TIMEOUT_S)
-    except Exception:
-        raise ErroHttp(503, "Recomendações indisponíveis no momento") from None
+        itens = await asyncio.wait_for(asyncio.to_thread(tarefa), TIMEOUT_S)
+    except Exception as excecao:
+        motivo = (f"TimeoutError: passou de {TIMEOUT_S:g} s (RF-08)" if isinstance(excecao, TimeoutError)
+                  else uso.descrever_erro(excecao))
+        uso.registrar(nome, parametros, "erro", erro=motivo, duracao_ms=(time.perf_counter() - inicio) * 1000)
+        raise ErroHttp(503, _indisponivel) from None
+    duracao = (time.perf_counter() - inicio) * 1000
+    if itens is None:
+        uso.registrar(nome, parametros, "nao-encontrado", fonte=dados.ULTIMA_FONTE, duracao_ms=duracao)
+    else:
+        uso.registrar(nome, parametros, "sucesso", len(itens), [item["id"] for item in itens],
+                      dados.ULTIMA_FONTE, duracao_ms=duracao)
+    return itens
 
 
 def _registrar(itens: list[dict], usuario_id: int | None, referencia: dict) -> None:
@@ -130,6 +161,42 @@ def _recomendar_por_usuario(usuario_id: int, limite: int) -> list[dict]:
     return recomendador.por_usuario(artefato, historico, limite)
 
 
+def _sentimento_do_produto(produto_id: int) -> list[dict] | None:
+    """Analisa cada avaliação do produto. None = produto inexistente; [] = sem avaliação."""
+    avaliacoes = dados.listar_avaliacoes(produto_id)
+    if avaliacoes is None:
+        return None
+    analisadas = []
+    for avaliacao in avaliacoes:
+        resultado = sentimento.analisar(avaliacao["comentario"])
+        analisadas.append({
+            "id": avaliacao["id"],
+            "nota": avaliacao["nota"],
+            "comentario": avaliacao["comentario"],
+            "criadoEm": avaliacao["criadoEm"],
+            "sentimento": resultado["rotulo"],
+            "pontuacao": resultado["pontuacao"],
+            "termos": [termo for termo, _ in resultado["termos"]],
+        })
+    return analisadas
+
+
+def _classificar_produto(produto_id: int) -> list[dict] | None:
+    """Prévia da classificação (não grava; quem grava é o classificar.py). Lista de 1 item, ou None."""
+    produto = dados.buscar_produto(produto_id)
+    if produto is None:
+        return None
+    resultado = classificador.classificar(produto["nome"], produto["descricao"])
+    return [{
+        "id": produto_id,
+        "categoriaAtual": produto["categoria"],
+        "classe": resultado["classe"],
+        "confianca": resultado["confianca"],
+        "status": classificador.status(resultado["classe"], resultado["confianca"], produto["categoria"]),
+        "palavras": resultado["palavras"],
+    }]
+
+
 @bentoml.service(resources={"cpu": "1"})
 @bentoml.asgi_app(app, path="/api")
 class RecomendadorOrigem:
@@ -141,7 +208,7 @@ class RecomendadorOrigem:
             raise ErroHttp(404, f"Produto {produto_id} não encontrado")
         qtd = _limite(limite, LIMITE_PADRAO_PRODUTO)
         pid = int(produto_id)
-        itens = await _executar(request, _recomendar_por_produto, pid, qtd)
+        itens = await _executar(request, _recomendar_por_produto, produto_id=pid, limite=qtd)
         if itens is None:
             raise ErroHttp(404, f"Produto {produto_id} não encontrado")
         _registrar(itens, _usuario_autenticado(request), {"produto_referencia_id": pid})
@@ -156,9 +223,34 @@ class RecomendadorOrigem:
         if usuario_id != str(autenticado):
             raise ErroHttp(403, "Só é possível consultar as próprias recomendações")
         qtd = _limite(limite, LIMITE_PADRAO_USUARIO)
-        itens = await _executar(request, _recomendar_por_usuario, autenticado, qtd)
+        itens = await _executar(request, _recomendar_por_usuario, usuario_id=autenticado, limite=qtd)
         _registrar(itens, autenticado, {"produto_referencia_id": None})
         return {"usuarioId": autenticado, "recomendacoes": itens, "modelo": VERSAO_REGRAS}
+
+    @app.get("/produtos/{produto_id}/sentimento")
+    async def sentimento_do_produto(self, produto_id: str, request: Request):
+        """Sentimento de cada avaliação do produto e o resumo (positivo/neutro/negativo)."""
+        if not produto_id.isdigit():
+            raise ErroHttp(404, f"Produto {produto_id} não encontrado")
+        pid = int(produto_id)
+        analisadas = await _executar(request, _sentimento_do_produto, produto_id=pid,
+                                     _indisponivel="Análise de sentimento indisponível no momento")
+        if analisadas is None:
+            raise ErroHttp(404, f"Produto {produto_id} não encontrado")
+        return {"produtoId": pid, "avaliacoes": analisadas, "resumo": sentimento.resumir(analisadas),
+                "modelo": VERSAO_SENTIMENTO}
+
+    @app.get("/produtos/{produto_id}/classificacao")
+    async def classificacao_do_produto(self, produto_id: str, request: Request):
+        """Categoria que o texto do produto sugere, a confiança e se precisa de revisão."""
+        if not produto_id.isdigit():
+            raise ErroHttp(404, f"Produto {produto_id} não encontrado")
+        itens = await _executar(request, _classificar_produto, produto_id=int(produto_id),
+                                _indisponivel="Classificação indisponível no momento")
+        if itens is None:
+            raise ErroHttp(404, f"Produto {produto_id} não encontrado")
+        return {"produtoId": int(produto_id), **{k: v for k, v in itens[0].items() if k != "id"},
+                "modelo": VERSAO_CLASSIFICADOR}
 
     @app.get("/recomendacoes/metricas")
     async def metricas(self, de: str | None = None, ate: str | None = None):
