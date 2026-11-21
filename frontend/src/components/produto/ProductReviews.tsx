@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState, type FormEvent } from "react";
-import { useAvaliacoes, useCriarAvaliacao } from "@/hooks/useAvaliacoes";
+import { useAvaliacoes, useCriarAvaliacao, useSentimento } from "@/hooks/useAvaliacoes";
+import type { RotuloSentimento } from "@/services/api/analises.service";
 import { useAuth } from "@/hooks/useAuth";
 import { Textarea } from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
@@ -19,6 +20,17 @@ function Estrelas({ nota }: { nota: number }) {
   );
 }
 
+const ESTILO_SENTIMENTO: Record<RotuloSentimento, { rotulo: string; classe: string }> = {
+  positivo: { rotulo: "Positiva", classe: "bg-[#D8F3DC] text-[#2D6A4F]" },
+  neutro: { rotulo: "Neutra", classe: "bg-beige text-[#555]" },
+  negativo: { rotulo: "Negativa", classe: "bg-[#fee2e2] text-[#dc2626]" },
+};
+
+function SeloSentimento({ rotulo }: { rotulo: RotuloSentimento }) {
+  const estilo = ESTILO_SENTIMENTO[rotulo];
+  return <span className={`rounded-sm px-2 py-0.5 text-[.7rem] font-bold uppercase tracking-[.06em] ${estilo.classe}`}>{estilo.rotulo}</span>;
+}
+
 export default function ProductReviews({ produtoId }: { produtoId: number }) {
   const { avaliacoes, carregando, erro, recarregar } = useAvaliacoes(produtoId);
   const { criar, enviando, erro: erroEnvio } = useCriarAvaliacao();
@@ -26,18 +38,23 @@ export default function ProductReviews({ produtoId }: { produtoId: number }) {
   const [nota, setNota] = useState(5);
   const [comentario, setComentario] = useState("");
   const [enviado, setEnviado] = useState(false);
+  const [versao, setVersao] = useState(0);
+  // Análise de sentimento do módulo de IA, pela API. Sem IA, não aparece nada.
+  const sentimento = useSentimento(produtoId, versao);
+  const sentimentoPorAvaliacao = useMemo(() => new Map(sentimento?.avaliacoes.map((item) => [item.id, item.sentimento]) ?? []), [sentimento]);
 
   const media = useMemo(() => (avaliacoes.length ? avaliacoes.reduce((soma, item) => soma + item.nota, 0) / avaliacoes.length : 0), [avaliacoes]);
 
   async function handleSubmit(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
     if (!usuario) return;
-    const nova = await criar({ produtoId, usuarioNome: usuario.nome, nota, comentario });
+    const nova = await criar({ produtoId, nota, comentario });
     if (nova) {
       setComentario("");
       setNota(5);
       setEnviado(true);
       recarregar();
+      setVersao((atual) => atual + 1);
     }
   }
 
@@ -55,6 +72,15 @@ export default function ProductReviews({ produtoId }: { produtoId: number }) {
               "Ainda sem avaliações"
             )}
           </h2>
+          {sentimento?.resumo && sentimento.resumo.total > 0 && sentimento.resumo.rotuloGeral && (
+            <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-[#555]" data-testid="sentimento-resumo">
+              <span className="font-semibold">Sentimento dos comentários:</span>
+              <SeloSentimento rotulo={sentimento.resumo.rotuloGeral} />
+              <span className="text-[#888]">
+                {sentimento.resumo.porRotulo.positivo} positiva(s) · {sentimento.resumo.porRotulo.neutro} neutra(s) · {sentimento.resumo.porRotulo.negativo} negativa(s), pela análise automática do Origem
+              </span>
+            </p>
+          )}
         </div>
       </div>
 
@@ -68,7 +94,10 @@ export default function ProductReviews({ produtoId }: { produtoId: number }) {
               {avaliacoes.map((avaliacao) => (
                 <li key={avaliacao.id} className="border-b border-beige-dark pb-5">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold text-charcoal">{avaliacao.usuarioNome}</p>
+                    <p className="flex items-center gap-2 text-sm font-semibold text-charcoal">
+                      {avaliacao.usuarioNome}
+                      {sentimentoPorAvaliacao.get(avaliacao.id) && <SeloSentimento rotulo={sentimentoPorAvaliacao.get(avaliacao.id)!} />}
+                    </p>
                     <span className="text-xs text-[#888]">{formatDate(avaliacao.criadoEm)}</span>
                   </div>
                   <Estrelas nota={avaliacao.nota} />
@@ -83,6 +112,8 @@ export default function ProductReviews({ produtoId }: { produtoId: number }) {
           <h3 className="font-display text-lg">Deixe sua avaliação</h3>
           {!usuario ? (
             <p className="mt-3 text-sm text-[#888]">Entre na sua conta para avaliar esta peça.</p>
+          ) : usuario.perfil !== "comprador" ? (
+            <p className="mt-3 text-sm text-[#888]">Só compradores avaliam peças.</p>
           ) : (
             <form onSubmit={handleSubmit} className="mt-4 space-y-4">
               <div>

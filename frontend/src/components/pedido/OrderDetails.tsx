@@ -23,9 +23,8 @@ export default function OrderDetails({ codigo }: { codigo: string }) {
 
   if (carregando) return <LoadingState variante="texto" mensagem="Carregando pedido..." />;
 
-  // Só o próprio cliente (ou o administrador) pode ver o detalhe do pedido.
-  const podeVer = pedido && (usuario.perfil === "administrador" || pedido.clienteEmail.toLowerCase() === usuario.email.toLowerCase());
-  if (!pedido || !podeVer) {
+  // Quem pode ver decide a API (comprador dono, artesão com item no pedido ou admin): 403 e 404 chegam aqui sem pedido.
+  if (!pedido) {
     return <EmptyState titulo="Pedido não encontrado" mensagem="Verifique o código informado." acaoHref={ROTAS.pedidos} acaoLabel="Ver meus pedidos" />;
   }
 

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { Artesao } from "@/types/artesao";
-import { artesoesService } from "@/services/api/artesoes.service";
+import { artesoesService, type IndicadoresArtesao } from "@/services/api/artesoes.service";
 
 /** Lista todos os artesãos, tratando carregando/erro/vazio. */
 export function useArtesoes() {
@@ -32,6 +32,12 @@ export function useArtesao(id: number) {
   const [erro, setErro] = useState<string | null>(null);
 
   useEffect(() => {
+    // Id ainda desconhecido (ex.: produto ou usuário carregando): espera, sem chamar a API.
+    if (!(id > 0)) {
+      setArtesao(null);
+      setCarregando(false);
+      return;
+    }
     let ativo = true;
     setCarregando(true);
     setErro(null);
@@ -78,4 +84,27 @@ export function useArtesoesPendentes() {
   }
 
   return { pendentes, carregando, erro, aprovar, rejeitar };
+}
+
+/** Indicadores do painel do artesão logado (GET /artesoes/eu/indicadores), com recarga após mudanças. */
+export function useIndicadoresArtesao(ativo: boolean) {
+  const [indicadores, setIndicadores] = useState<IndicadoresArtesao | null>(null);
+  const [erro, setErro] = useState<string | null>(null);
+
+  const carregar = useCallback(() => {
+    if (!ativo) return;
+    artesoesService
+      .indicadores()
+      .then((resultado) => {
+        setIndicadores(resultado);
+        setErro(null);
+      })
+      .catch((erroCapturado: Error) => setErro(erroCapturado.message));
+  }, [ativo]);
+
+  useEffect(() => {
+    carregar();
+  }, [carregar]);
+
+  return { indicadores, erro, recarregar: carregar };
 }

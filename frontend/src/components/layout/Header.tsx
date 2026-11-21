@@ -58,8 +58,8 @@ export default function Header() {
     setMenuOpen(false);
   }
 
-  function sairEVoltarParaHome() {
-    sair();
+  async function sairEVoltarParaHome() {
+    await sair();
     setMenuOpen(false);
     router.push(ROTAS.home);
   }

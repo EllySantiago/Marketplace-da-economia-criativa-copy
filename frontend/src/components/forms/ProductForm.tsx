@@ -5,9 +5,8 @@ import { useSalvarProduto } from "@/hooks/useProdutos";
 import { Input, Textarea } from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import ErrorState from "@/components/feedback/ErrorState";
-import { REGIOES } from "@/constants/regioes";
-import { TECNICAS } from "@/constants/tecnicas";
-import { CATEGORIAS } from "@/constants/categorias";
+import { useFiltros } from "@/hooks/useFiltros";
+import type { OpcoesFiltro } from "@/services/api/filtros.service";
 import type { NovoProduto, Produto } from "@/types/produto";
 
 interface ProductFormProps {
@@ -30,8 +29,8 @@ interface CamposProduto {
   regiao: string;
 }
 
-function camposVazios(regiaoPadrao?: string): CamposProduto {
-  return { nome: "", descricao: "", preco: "", estoque: "", categoria: CATEGORIAS[0], tecnica: TECNICAS[0], imagem: "", regiao: regiaoPadrao ?? REGIOES[0] };
+function camposVazios(opcoes: OpcoesFiltro, regiaoPadrao?: string): CamposProduto {
+  return { nome: "", descricao: "", preco: "", estoque: "", categoria: opcoes.categorias[0], tecnica: opcoes.tecnicas[0], imagem: "", regiao: regiaoPadrao ?? opcoes.regioes[0] };
 }
 
 function camposDoProduto(produto: Produto): CamposProduto {
@@ -49,12 +48,14 @@ function camposDoProduto(produto: Produto): CamposProduto {
 
 export default function ProductForm({ artesaoId, regiaoPadrao, produtoExistente, onSalvo, onCancelarEdicao }: ProductFormProps) {
   const { salvar, enviando, erro } = useSalvarProduto();
-  const [campos, setCampos] = useState<CamposProduto>(() => (produtoExistente ? camposDoProduto(produtoExistente) : camposVazios(regiaoPadrao)));
+  // Categorias, técnicas e regiões do banco (GET /filtros): a API recusa nomes fora dessas listas.
+  const opcoes = useFiltros();
+  const [campos, setCampos] = useState<CamposProduto>(() => (produtoExistente ? camposDoProduto(produtoExistente) : camposVazios(opcoes, regiaoPadrao)));
   const [sucesso, setSucesso] = useState(false);
   const emEdicao = Boolean(produtoExistente);
 
   useEffect(() => {
-    setCampos(produtoExistente ? camposDoProduto(produtoExistente) : camposVazios(regiaoPadrao));
+    setCampos(produtoExistente ? camposDoProduto(produtoExistente) : camposVazios(opcoes, regiaoPadrao));
     setSucesso(false);
   }, [produtoExistente, regiaoPadrao]);
 
@@ -78,7 +79,7 @@ export default function ProductForm({ artesaoId, regiaoPadrao, produtoExistente,
     };
     const produtoSalvo = await salvar(dados, produtoExistente?.id);
     if (produtoSalvo) {
-      if (!emEdicao) setCampos(camposVazios(regiaoPadrao));
+      if (!emEdicao) setCampos(camposVazios(opcoes, regiaoPadrao));
       setSucesso(true);
       onSalvo?.(produtoSalvo);
     }
@@ -97,7 +98,7 @@ export default function ProductForm({ artesaoId, regiaoPadrao, produtoExistente,
         <label className="block text-sm font-medium">
           Categoria
           <select className="mt-2 w-full border border-beige-dark bg-white px-3 py-3 text-sm" value={campos.categoria} onChange={(e) => atualizar("categoria", e.target.value)}>
-            {CATEGORIAS.map((categoria) => (
+            {opcoes.categorias.map((categoria) => (
               <option key={categoria}>{categoria}</option>
             ))}
           </select>
@@ -105,7 +106,7 @@ export default function ProductForm({ artesaoId, regiaoPadrao, produtoExistente,
         <label className="block text-sm font-medium">
           Técnica
           <select className="mt-2 w-full border border-beige-dark bg-white px-3 py-3 text-sm" value={campos.tecnica} onChange={(e) => atualizar("tecnica", e.target.value)}>
-            {TECNICAS.map((tecnica) => (
+            {opcoes.tecnicas.map((tecnica) => (
               <option key={tecnica}>{tecnica}</option>
             ))}
           </select>
@@ -113,7 +114,7 @@ export default function ProductForm({ artesaoId, regiaoPadrao, produtoExistente,
         <label className="block text-sm font-medium">
           Região
           <select className="mt-2 w-full border border-beige-dark bg-white px-3 py-3 text-sm" value={campos.regiao} onChange={(e) => atualizar("regiao", e.target.value)}>
-            {REGIOES.map((regiao) => (
+            {opcoes.regioes.map((regiao) => (
               <option key={regiao}>{regiao}</option>
             ))}
           </select>

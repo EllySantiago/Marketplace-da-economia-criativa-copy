@@ -21,7 +21,8 @@ export default function RecomendadosParaVoce() {
     let ativo = true;
     recomendacoesService
       .recomendarParaUsuario(comprador.id, comprador.email, 4)
-      .then((resultado) => ativo && setRecomendados(resultado));
+      .then((resultado) => ativo && setRecomendados(resultado))
+      .catch(() => ativo && setRecomendados([]));
     return () => {
       ativo = false;
     };

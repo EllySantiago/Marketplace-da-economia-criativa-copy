@@ -31,12 +31,15 @@ export default function CheckoutPage() {
   const [metodoPagamento, setMetodoPagamento] = useState<MetodoPagamento>("cartao");
   const [problemasEstoque, setProblemasEstoque] = useState<ProblemaEstoque[]>([]);
 
-  // Revalida o estoque a cada visita ao checkout: o carrinho fica salvo no navegador e
-  // pode ter ficado desatualizado em relação à Fake API (ex.: outra aba esgotou a peça).
+  // Revalida o estoque a cada visita ao checkout (POST /carrinho/validar): o carrinho não reserva
+  // estoque, então outra pessoa pode ter comprado a peça. A garantia final é do checkout seguro da API.
   useEffect(() => {
     if (itens.length === 0) return;
     let ativo = true;
-    carrinhoService.validarEstoque(itens).then((problemas) => ativo && setProblemasEstoque(problemas));
+    carrinhoService
+      .validarEstoque(itens)
+      .then((problemas) => ativo && setProblemasEstoque(problemas))
+      .catch(() => ativo && setProblemasEstoque([]));
     return () => {
       ativo = false;
     };

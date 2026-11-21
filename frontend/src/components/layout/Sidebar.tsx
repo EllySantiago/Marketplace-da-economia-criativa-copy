@@ -24,8 +24,8 @@ export default function Sidebar({ titulo, subtitulo, itens, corFundo = "#1B4332"
   const router = useRouter();
   const { sair } = useAuth();
 
-  function handleSair() {
-    sair();
+  async function handleSair() {
+    await sair();
     router.push(ROTAS.home);
   }
 

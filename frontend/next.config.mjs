@@ -8,8 +8,8 @@ const frontendRoot = path.dirname(fileURLToPath(import.meta.url));
 // definido na Vercel. Com ele, o navegador chama /api/... no PRÓPRIO domínio do
 // site e a Vercel repassa para a API. Assim o cookie de sessão é do mesmo site
 // (SameSite=Lax funciona) e o navegador nem precisa de CORS. Sem a variável
-// (desenvolvimento), nada muda.
-const API_URL = process.env.API_URL?.replace(/\/+$/, "");
+// (desenvolvimento), o rewrite aponta para a API local na porta 3333, do mesmo jeito.
+const API_URL = (process.env.API_URL ?? (process.env.NODE_ENV === "production" ? "" : "http://localhost:3333")).replace(/\/+$/, "");
 
 const nextConfig = {
   distDir: process.env.NODE_ENV === "development" ? ".next-dev" : ".next",

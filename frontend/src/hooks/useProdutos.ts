@@ -18,6 +18,11 @@ export function useProdutos(filtros?: FiltrosProduto) {
   const carregar = useCallback(() => {
     setEstado((atual) => ({ ...atual, carregando: true, erro: null }));
     const filtrosAtuais: FiltrosProduto = chaveFiltros ? JSON.parse(chaveFiltros) : {};
+    // Painel com o artesão ainda desconhecido (-1 antes do login carregar): nada a buscar.
+    if (filtrosAtuais.artesaoId !== undefined && !(filtrosAtuais.artesaoId > 0)) {
+      setEstado({ produtos: [], carregando: false, erro: null });
+      return;
+    }
     const requisicao = Object.keys(filtrosAtuais).length ? produtosService.filtrar(filtrosAtuais) : produtosService.listarTodos();
     requisicao
       .then((produtos) => setEstado({ produtos, carregando: false, erro: null }))

@@ -21,4 +21,6 @@ export interface DadosCadastro {
   email: string;
   senha: string;
   perfil: PerfilUsuario;
+  /** Obrigatória para artesão: um dos nomes de GET /filtros (regioes). */
+  regiao?: string;
 }
