@@ -25,9 +25,12 @@ from fastapi.responses import JSONResponse
 
 import dados
 import recomendador
+import sentimento
 import uso
 
 VERSAO_REGRAS = "regras-origem-u2"  # campo "modelo" da resposta (contrato da AV1)
+VERSAO_SENTIMENTO = "lexico-origem-u2"
+INDISPONIVEL = "Recomendações indisponíveis no momento"
 TIMEOUT_S = 2.0  # RF-08 / RNF-02
 LIMITE_PADRAO_PRODUTO = 4  # RF-05
 LIMITE_PADRAO_USUARIO = 8
@@ -85,7 +88,8 @@ def _definir_chamador(request: Request) -> None:
     uso.quem_chamou.set(valor if valor in uso.CHAMADORES else "api")
 
 
-async def _executar(request: Request, funcao, **parametros) -> list[dict] | None:
+async def _executar(request: Request, funcao, *, _indisponivel: str = INDISPONIVEL,
+                    **parametros) -> list[dict] | None:
     """RF-08: roda a estratégia com timeout de 2 s; erro ou lentidão viram 503.
 
     Cada execução vira uma linha no log de uso (uso.py), com o nome da
@@ -110,7 +114,7 @@ async def _executar(request: Request, funcao, **parametros) -> list[dict] | None
         motivo = (f"TimeoutError: passou de {TIMEOUT_S:g} s (RF-08)" if isinstance(excecao, TimeoutError)
                   else uso.descrever_erro(excecao))
         uso.registrar(nome, parametros, "erro", erro=motivo, duracao_ms=(time.perf_counter() - inicio) * 1000)
-        raise ErroHttp(503, "Recomendações indisponíveis no momento") from None
+        raise ErroHttp(503, _indisponivel) from None
     duracao = (time.perf_counter() - inicio) * 1000
     if itens is None:
         uso.registrar(nome, parametros, "nao-encontrado", duracao_ms=duracao)
@@ -155,6 +159,26 @@ def _recomendar_por_usuario(usuario_id: int, limite: int) -> list[dict]:
     return recomendador.por_usuario(artefato, historico, limite)
 
 
+def _sentimento_do_produto(produto_id: int) -> list[dict] | None:
+    """Analisa cada avaliação do produto. None = produto inexistente; [] = sem avaliação."""
+    avaliacoes = dados.listar_avaliacoes(produto_id)
+    if avaliacoes is None:
+        return None
+    analisadas = []
+    for avaliacao in avaliacoes:
+        resultado = sentimento.analisar(avaliacao["comentario"])
+        analisadas.append({
+            "id": avaliacao["id"],
+            "nota": avaliacao["nota"],
+            "comentario": avaliacao["comentario"],
+            "criadoEm": avaliacao["criadoEm"],
+            "sentimento": resultado["rotulo"],
+            "pontuacao": resultado["pontuacao"],
+            "termos": [termo for termo, _ in resultado["termos"]],
+        })
+    return analisadas
+
+
 @bentoml.service(resources={"cpu": "1"})
 @bentoml.asgi_app(app, path="/api")
 class RecomendadorOrigem:
@@ -184,6 +208,19 @@ class RecomendadorOrigem:
         itens = await _executar(request, _recomendar_por_usuario, usuario_id=autenticado, limite=qtd)
         _registrar(itens, autenticado, {"produto_referencia_id": None})
         return {"usuarioId": autenticado, "recomendacoes": itens, "modelo": VERSAO_REGRAS}
+
+    @app.get("/produtos/{produto_id}/sentimento")
+    async def sentimento_do_produto(self, produto_id: str, request: Request):
+        """Sentimento de cada avaliação do produto e o resumo (positivo/neutro/negativo)."""
+        if not produto_id.isdigit():
+            raise ErroHttp(404, f"Produto {produto_id} não encontrado")
+        pid = int(produto_id)
+        analisadas = await _executar(request, _sentimento_do_produto, produto_id=pid,
+                                     _indisponivel="Análise de sentimento indisponível no momento")
+        if analisadas is None:
+            raise ErroHttp(404, f"Produto {produto_id} não encontrado")
+        return {"produtoId": pid, "avaliacoes": analisadas, "resumo": sentimento.resumir(analisadas),
+                "modelo": VERSAO_SENTIMENTO}
 
     @app.get("/recomendacoes/metricas")
     async def metricas(self, de: str | None = None, ate: str | None = None):

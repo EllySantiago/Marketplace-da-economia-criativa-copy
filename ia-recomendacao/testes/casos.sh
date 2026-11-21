@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Roda os 8 casos de teste do README contra o serviço já no ar (just serve) e diz OK/FALHOU.
-# O caso 6 tem duas verificações (401 e 403), como no README.
+# Roda os 10 casos de teste do README contra o serviço já no ar (just serve) e diz OK/FALHOU.
+# Os casos 6 e 10 têm duas verificações cada, como no README.
 # Uso: bash testes/casos.sh [url-base]   (padrão http://127.0.0.1:3001)
 
 BASE="${1:-http://127.0.0.1:3001}/api"
@@ -65,6 +65,18 @@ caso "7. métricas do log por critério (RF-03/RNF-07)" 200 \
 caso "8. usuária sem histórico → só popularidade (RF-06/07)" 200 \
   "$ids == [3, 11, 4, 1, 2] and set($criterios) == {'popularidade'}" \
   -H 'X-Usuario-Id: 13' "$BASE/usuarios/13/recomendados?limite=5"
+
+caso "9. sentimento das avaliações (H2.3)" 200 \
+  "d['resumo']['rotuloGeral'] == 'negativo' and d['avaliacoes'][0]['sentimento'] == 'negativo'" \
+  "$BASE/produtos/12/sentimento"
+
+caso "10. sentimento de produto sem avaliação → lista vazia" 200 \
+  "d['avaliacoes'] == [] and d['resumo']['rotuloGeral'] is None" \
+  "$BASE/produtos/13/sentimento"
+
+caso "10. sentimento de produto inexistente → 404" 404 \
+  "d == {'erro': 'Produto 999 não encontrado'}" \
+  "$BASE/produtos/999/sentimento"
 
 echo
 if [[ $falhas -eq 0 ]]; then echo "Todos os casos passaram."; else echo "$falhas caso(s) falharam."; exit 1; fi

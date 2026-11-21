@@ -33,7 +33,7 @@ PRODUTO_NO_RETORNO = {"buscar_produto", "historico_do_usuario", "recomendar_por_
 USUARIO_NO_PARAMETRO = {"historico_do_usuario", "recomendar_por_usuario"}
 FUNCOES_CONHECIDAS = ["listar_produtos", "buscar_produto", "historico_do_usuario", "listar_avaliacoes",
                       "listar_compradores", "historicos_de_todos", "recomendar_por_produto",
-                      "recomendar_por_usuario"]
+                      "recomendar_por_usuario", "sentimento_do_produto"]
 
 
 def ler_log(arquivo: Path) -> list[dict]:
@@ -125,7 +125,7 @@ def montar(linhas: list[dict], produtos: list[dict], compradores: list[int], fon
     nunca = [f for f in FUNCOES_CONHECIDAS if f not in c["por_funcao"]]
     escreve("")
     if nunca:
-        escreve("Funções de acesso nunca chamadas: " + ", ".join(f"`{f}`" for f in nunca) + ".\n")
+        escreve("Funções nunca chamadas: " + ", ".join(f"`{f}`" for f in nunca) + ".\n")
 
     escreve("## Quem chamou e de onde vieram os dados\n")
     escreve("Quem chamou: " + ", ".join(f"{q} {n}" for q, n in c["quem"].most_common()) + ".  ")
