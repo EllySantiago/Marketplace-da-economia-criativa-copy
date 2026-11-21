@@ -1,6 +1,6 @@
 import type { Avaliacao } from "@/types/avaliacao";
 import { avaliacoesMock } from "@/mocks/avaliacoes.mock";
-import { delay, ApiError } from "./client";
+import { apiFetch, delay, ApiError } from "./client";
 
 const avaliacoes: Avaliacao[] = [...avaliacoesMock];
 let proximoId = Math.max(...avaliacoes.map((avaliacao) => avaliacao.id)) + 1;
@@ -13,9 +13,9 @@ export interface NovaAvaliacao {
 }
 
 export const avaliacoesService = {
+  /** GET /produtos/:id/avaliacoes, mais recentes primeiro. */
   async listarPorProduto(produtoId: number): Promise<Avaliacao[]> {
-    const lista = avaliacoes.filter((avaliacao) => avaliacao.produtoId === produtoId);
-    return delay(lista.sort((a, b) => (a.criadoEm < b.criadoEm ? 1 : -1)));
+    return apiFetch<Avaliacao[]>(`/produtos/${produtoId}/avaliacoes`);
   },
 
   async criar(dados: NovaAvaliacao): Promise<Avaliacao> {

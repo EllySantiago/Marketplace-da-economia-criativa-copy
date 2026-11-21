@@ -1,5 +1,4 @@
-import { REGIOES } from "@/constants/regioes";
-import { CATEGORIAS } from "@/constants/categorias";
+import { useFiltros } from "@/hooks/useFiltros";
 
 export interface ValoresFiltro {
   busca: string;
@@ -18,6 +17,7 @@ const TODAS = "Todas";
 export const PRECO_MAXIMO = 1000;
 
 export default function ProductFilters({ valores, onAlterar }: ProductFiltersProps) {
+  const { regioes, categorias } = useFiltros();
   return (
     <aside className="space-y-6">
       <label className="block text-xs font-bold uppercase tracking-[.12em] text-[#888]">
@@ -37,7 +37,7 @@ export default function ProductFilters({ valores, onAlterar }: ProductFiltersPro
           className="mt-3 w-full border border-beige-dark bg-white px-3 py-2 text-sm"
         >
           <option>{TODAS}</option>
-          {REGIOES.map((regiao) => (
+          {regioes.map((regiao) => (
             <option key={regiao}>{regiao}</option>
           ))}
         </select>
@@ -50,7 +50,7 @@ export default function ProductFilters({ valores, onAlterar }: ProductFiltersPro
           className="mt-3 w-full border border-beige-dark bg-white px-3 py-2 text-sm"
         >
           <option>{TODAS}</option>
-          {CATEGORIAS.map((categoria) => (
+          {categorias.map((categoria) => (
             <option key={categoria}>{categoria}</option>
           ))}
         </select>

@@ -1,7 +1,6 @@
 import type { FiltrosProduto, NovoProduto, Produto } from "@/types/produto";
 import { produtosMock } from "@/mocks/produtos.mock";
-import { normalizeText } from "@/utils/normalizeText";
-import { delay, ApiError } from "./client";
+import { apiFetch, delay, ApiError } from "./client";
 import { artesoesService } from "./artesoes.service";
 
 // Cópia mutável em memória: permite simular criação/edição de produtos (painel do artesão)
@@ -10,31 +9,29 @@ const produtos: Produto[] = [...produtosMock];
 let proximoId = Math.max(...produtos.map((produto) => produto.id)) + 1;
 
 export const produtosService = {
+  /** GET /produtos: só a vitrine (ativos de artesão aprovado). */
   async listarTodos(): Promise<Produto[]> {
-    return delay([...produtos]);
+    return apiFetch<Produto[]>("/produtos");
   },
 
   async buscarPorId(id: number): Promise<Produto> {
-    const produto = produtos.find((item) => item.id === id);
-    if (!produto) {
-      await delay(null, 300);
-      throw new ApiError(`Produto ${id} não encontrado.`);
-    }
-    return delay(produto);
+    return apiFetch<Produto>(`/produtos/${id}`);
   },
 
+  /**
+   * GET /produtos com filtros: a busca (sem acento, em nome, artesão e técnica) e os filtros rodam
+   * no banco. Com o artesaoId do próprio artesão logado, a API devolve também os inativos dele.
+   */
   async filtrar(filtros: FiltrosProduto): Promise<Produto[]> {
-    const busca = filtros.busca ? normalizeText(filtros.busca) : "";
-    const resultado = produtos.filter((produto) => {
-      const combinaRegiao = !filtros.regiao || filtros.regiao === "Todas" || produto.regiao === filtros.regiao;
-      const combinaTecnica = !filtros.tecnica || filtros.tecnica === "Todas" || produto.tecnica === filtros.tecnica;
-      const combinaCategoria = !filtros.categoria || filtros.categoria === "Todas" || produto.categoria === filtros.categoria;
-      const combinaArtesao = !filtros.artesaoId || produto.artesaoId === filtros.artesaoId;
-      const textoAlvo = normalizeText(`${produto.nome} ${produto.artesao} ${produto.tecnica}`);
-      const combinaBusca = !busca || textoAlvo.includes(busca);
-      return combinaRegiao && combinaTecnica && combinaCategoria && combinaArtesao && combinaBusca;
+    return apiFetch<Produto[]>("/produtos", {
+      query: {
+        busca: filtros.busca?.trim(),
+        regiao: filtros.regiao,
+        tecnica: filtros.tecnica,
+        categoria: filtros.categoria,
+        artesaoId: filtros.artesaoId,
+      },
     });
-    return delay(resultado);
   },
 
   async criar(dados: NovoProduto): Promise<Produto> {

@@ -1,6 +1,6 @@
 import type { Artesao, DadosNovoArtesao } from "@/types/artesao";
 import { artesoesMock } from "@/mocks/artesoes.mock";
-import { delay, ApiError } from "./client";
+import { apiFetch, delay, ApiError } from "./client";
 
 const artesoes: Artesao[] = [...artesoesMock];
 let proximoId = Math.max(...artesoes.map((artesao) => artesao.id)) + 1;
@@ -8,16 +8,12 @@ let proximoId = Math.max(...artesoes.map((artesao) => artesao.id)) + 1;
 export const artesoesService = {
   /** Só retorna artesãos já aprovados pela administração — é o que aparece na vitrine pública. */
   async listarTodos(): Promise<Artesao[]> {
-    return delay(artesoes.filter((artesao) => artesao.aprovado));
+    return apiFetch<Artesao[]>("/artesoes");
   },
 
+  /** GET /artesoes/:id: avaliação média, vendas e produtos são calculados pela API. */
   async buscarPorId(id: number): Promise<Artesao> {
-    const artesao = artesoes.find((item) => item.id === id);
-    if (!artesao) {
-      await delay(null, 300);
-      throw new ApiError(`Artesão ${id} não encontrado.`);
-    }
-    return delay(artesao);
+    return apiFetch<Artesao>(`/artesoes/${id}`);
   },
 
   /** Usado internamente pelo cadastro (usuariosService.registrar) e por telas que já sabem o id. */
