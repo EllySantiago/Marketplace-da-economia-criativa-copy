@@ -10,7 +10,7 @@
 //      mais vendidos (RF-08 / RNF-02), e diz isso no campo "fonte".
 // ============================================================================
 
-import { config } from "../config/env.js";
+import { avisarIndisponivel, consultarIa } from "../utils/modulo-ia.js";
 import { paraProduto } from "../utils/mapeadores/catalogo.js";
 import * as produtosRepository from "../repositories/produtos.repository.js";
 import * as recomendacoesRepository from "../repositories/recomendacoes.repository.js";
@@ -18,16 +18,9 @@ import { buscarVisivel } from "./produtos.service.js";
 
 const MAX_POR_ARTESAO = 2; // RNF-06, a mesma regra do módulo de IA
 
-/** Pergunta ao módulo de IA. Qualquer falha (rede, status, JSON, tempo) vira exceção. */
+/** Pergunta ao módulo de IA e exige a lista de recomendações na resposta. */
 async function perguntarIa(caminho, usuario) {
-  const cabecalhos = { "X-Origem-Chamador": "backend" }; // aparece assim no log de uso da IA
-  if (usuario) cabecalhos["X-Usuario-Id"] = String(usuario.id); // quem a API autenticou
-  const resposta = await fetch(`${config.recomendacaoUrl}${caminho}`, {
-    headers: cabecalhos,
-    signal: AbortSignal.timeout(config.recomendacaoTimeoutMs),
-  });
-  if (!resposta.ok) throw new Error(`módulo de IA respondeu ${resposta.status}`);
-  const corpo = await resposta.json();
+  const corpo = await consultarIa(caminho, usuario);
   if (!Array.isArray(corpo?.recomendacoes)) throw new Error("resposta do módulo de IA sem a lista de recomendações");
   return corpo.recomendacoes;
 }
@@ -71,8 +64,7 @@ async function iaOuPopularidade(caminho, usuario, excluir, limite) {
     const itens = await completarComBanco(await perguntarIa(caminho, usuario), excluir);
     return { fonte: "ia", recomendacoes: itens.slice(0, limite) };
   } catch (erro) {
-    // Só o motivo curto: nada de stack trace no log a cada visita com a IA fora.
-    console.warn(`[recomendacoes] módulo de IA indisponível (${erro.name}: ${erro.message}); usando popularidade.`);
+    avisarIndisponivel("recomendacoes", erro, "usando popularidade");
     return { fonte: "popularidade", recomendacoes: await maisVendidos(excluir, limite) };
   }
 }
