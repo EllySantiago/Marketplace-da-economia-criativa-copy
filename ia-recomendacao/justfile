@@ -18,6 +18,10 @@ testes-dados:
     uv run python testes/test_dados.py
     uv run python testes/test_uso.py
 
+# Resumo do log de uso (logs/uso_dados.jsonl): chamadas por função, erros e as respostas (a), (b), (c).
+resumo:
+    uv run python resumo.py
+
 # Regera o retrato dados/catalogo.json a partir do banco (usado quando o banco está fora do ar).
 retrato:
     uv run python exportar.py

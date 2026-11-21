@@ -17,6 +17,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import dados  # noqa: E402
+import resumo  # noqa: E402
 import uso  # noqa: E402
 
 BANCO_DESLIGADO = "postgres://origem:origem@127.0.0.1:1/origem"
@@ -95,6 +96,42 @@ class LogDeUso(unittest.TestCase):
         finally:
             uso.ativo.reset(token)
         self.assertFalse(uso.ARQUIVO.exists())
+
+
+class Resumo(unittest.TestCase):
+    """O resumo sobre um log pequeno e conhecido, montado à mão."""
+
+    PRODUTOS = [
+        {"id": 1, "nome": "A", "status": "ativo", "estoque": 3, "vendas": 5, "notaMedia": 4.0},
+        {"id": 2, "nome": "B", "status": "ativo", "estoque": 0, "vendas": 1, "notaMedia": 0},
+        {"id": 3, "nome": "C", "status": "ativo", "estoque": 2, "vendas": 0, "notaMedia": 0},
+    ]
+
+    def linha(self, funcao, resultado="sucesso", parametros=None, ids=None, erro=None):
+        base = {"data_hora": "2026-11-21T10:00:00-03:00", "funcao": funcao, "quem_chamou": "teste",
+                "parametros": parametros or {}, "fonte": "banco", "resultado": resultado, "registros": len(ids or [])}
+        if ids is not None:
+            base["ids"] = ids
+        if erro:
+            base["erro"] = erro
+        return base
+
+    def test_responde_a_b_c(self) -> None:
+        linhas = [
+            self.linha("listar_produtos"),
+            self.linha("listar_produtos"),
+            self.linha("recomendar_por_produto", parametros={"produto_id": 1}, ids=[1]),
+            self.linha("buscar_produto", "nao-encontrado", {"produto_id": 999}),
+            self.linha("recomendar_por_produto", "erro", {"produto_id": 1}, erro="TimeoutError: passou de 2 s (RF-08)"),
+        ]
+        texto = resumo.montar(linhas, self.PRODUTOS, [7], "banco")
+        self.assertIn("`listar_produtos` foi a função mais chamada (2 de 5", texto)
+        self.assertIn("O registro mais usado foi o produto 1", texto)
+        self.assertIn("2 produto(s) nunca apareceram (2, 3)", texto)
+        self.assertIn("| 2 | B | sem estoque", texto)
+        self.assertIn("| 3 | C | sem venda e sem avaliação", texto)
+        self.assertIn("**(c) Houve erro?** Sim, 1.", texto)
+        self.assertNotIn("| 999 |", texto)  # id inexistente fica fora do ranking
 
 
 if __name__ == "__main__":
