@@ -1,12 +1,107 @@
 # Origem — Marketplace da Economia Criativa de Pernambuco
 
 Aplicação web que conecta artesãos e empreendedores criativos de Pernambuco a compradores de
-todo o país. Projeto Integrador. O repositório reúne o **frontend responsivo com Fake API**
-(Avaliação 1), o **backend** (nascido na entrega de FCCPD, com concorrência no checkout e fila
-assíncrona, e que na U2 virou a API REST real do marketplace) e o **módulo de recomendação em
-BentoML** da disciplina de IA. O andamento da U2 está em [`docs/plano-u2.md`](docs/plano-u2.md).
+todo o país. Projeto Integrador do 4º semestre de ADS. O repositório reúne o **site** (Next.js), a
+**API** (Node/Express + PostgreSQL, nascida na entrega de FCCPD com o checkout concorrente e a fila),
+o **módulo de IA** (BentoML: recomendação, sentimento e classificação) e a documentação de cada
+disciplina. O plano e o andamento da U2 estão em [`docs/plano-u2.md`](docs/plano-u2.md).
 
 **Equipe:** Ana Beatriz Lopes, Everton Nunes, Drielly Santiago e Thainá Pontes.
+
+| Disciplina | Comece por |
+|---|---|
+| Desenvolvimento Web | [Aplicação Web (U2)](#aplicação-web--u2) logo abaixo |
+| IA Aplicada | [README do módulo de IA](ia-recomendacao/README.md) |
+| FCCPD | [U1](RELATORIO.md) e [U2](fccpd-u2/RELATORIO.md) |
+| Requisitos | testes em `backend/testes/api/`, refatorações em [`docs/refatoracao/`](docs/refatoracao/) |
+
+---
+
+## Aplicação Web — U2
+
+### Arquitetura
+
+```
+navegador ──▶ site Next.js (Vercel) ──/api──▶ API Express (Render) ──▶ PostgreSQL (Neon)
+                                                   │   └─ worker da fila (notificações do pedido)
+                                                   └──▶ módulo de IA BentoML (Render)
+```
+
+O site só fala com a API, pelo próprio domínio (`/api`, repassado pelo rewrite do Next), e a sessão é
+um cookie httpOnly. A API guarda as regras de negócio, o checkout seguro e o cache, repassa os três
+modelos da IA com o usuário do login e enfileira as notificações de cada pedido. Detalhes, camadas e
+decisões: [`docs/arquitetura.md`](docs/arquitetura.md).
+
+### Tecnologias
+
+| Parte | Tecnologias |
+|---|---|
+| Frontend | Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS 4, Zustand |
+| Backend | Node.js 20+, Express 5, Prisma 6 + driver `pg`, JWT em cookie httpOnly, bcrypt, Swagger UI |
+| Banco | PostgreSQL 16 (`unaccent`, `pg_trgm`), fila em tabela com `FOR UPDATE SKIP LOCKED` |
+| IA | Python 3.13, BentoML, `uv`/`just`, regras de recomendação, léxico de sentimento e palavras-chave |
+| Testes | `node:test` + `supertest` (API), testes Python do módulo de IA, roteiro Playwright no navegador |
+| Deploy | Vercel (site), Render (API e IA), Neon (banco) |
+
+### Como executar tudo localmente
+
+Pré-requisitos: Docker, Node.js 20+, e para a IA `uv` e `just`.
+
+```bash
+# 1. banco (PostgreSQL com schema e seed) — porta 5434
+cd backend
+docker compose up -d
+npm install
+
+# 2. API (http://localhost:3333, Swagger em /docs) e worker da fila, em terminais separados
+npm run api
+npm run worker
+
+# 3. módulo de IA (http://localhost:3001), em outro terminal
+cd ../ia-recomendacao
+just serve
+
+# 4. site (http://localhost:3000), em outro terminal
+cd ../frontend
+npm install
+npm run dev
+```
+
+Em desenvolvimento o site repassa `/api/...` para `http://localhost:3333`, então não é preciso
+configurar nada. As variáveis de cada parte estão nos `.env.example` (`backend/`, `frontend/`), sem
+credenciais reais. Testes da API: `cd backend && npm test`.
+
+> **Já tinha subido o banco antes da U2?** O PostgreSQL só executa os arquivos de `backend/sql/`
+> quando o volume está vazio. Recrie o banco uma vez: `docker compose down -v && docker compose up -d`
+> (apaga os dados locais do banco).
+
+### Contas de demonstração
+
+Todas usam a senha **`origem123`**:
+
+| Perfil | E-mail |
+|---|---|
+| Comprador (com histórico de compras) | `comprador@origem.com.br` |
+| Artesã | `maria@origem.com.br` |
+| Administrador | `admin@origem.com.br` |
+
+Também é possível criar conta em `/cadastro`, como comprador ou artesão. Artesão escolhe a região do
+ateliê e só aparece na vitrine depois que o admin aprova.
+
+### Documentação da API
+
+Swagger em **`/docs`** na API (especificação em [`backend/openapi.yaml`](backend/openapi.yaml), que um
+teste mantém em sincronia com as rotas). Contrato com regras, erros e mapeamento banco ↔ API:
+[`docs/api.md`](docs/api.md).
+
+### Deploy
+
+Passo a passo (Neon, Render e Vercel) e URLs publicadas: [`docs/deploy.md`](docs/deploy.md).
+
+### Evidências e uso de IA
+
+- Banco, recomendação, processamento assíncrono, cache e o fluxo no navegador: [`evidencias-u2/`](evidencias-u2/).
+- Declaração de uso de IA generativa: [`docs/uso-de-ia.md`](docs/uso-de-ia.md).
 
 ---
 
@@ -198,33 +293,18 @@ avaliação inexistentes, usuário sem compras e pedido cancelado.
 
 ### Integração com o frontend
 
-O frontend do Origem chama o módulo em duas telas, pelo
-`frontend/src/services/api/recomendacoes.service.ts`: na página de detalhe do produto (RF-01) e
-na página inicial, para o comprador logado (RF-06). Para ver funcionando:
+Desde a U2 o site não chama mais o módulo direto: ele pede à API, e a API chama o módulo com o usuário
+do login (`docs/api.md`, seções 7b e 7c). Com tudo rodando (ver [Como executar tudo localmente](#como-executar-tudo-localmente)):
 
-```bash
-# terminal 1 — módulo de IA (dentro de ia-recomendacao/)
-just serve
-# terminal 2 — frontend
-cd frontend
-cp .env.example .env.local      # NEXT_PUBLIC_RECOMENDACAO_URL=http://localhost:3001
-npm install
-npm run dev
-```
+- em `http://localhost:3000/produtos/1`, "Peças relacionadas" mostra 5, 9 e 3 vindos do módulo, e
+  as avaliações ganham o selo de sentimento;
+- na página inicial, logado como `comprador@origem.com.br`, aparece **"Escolhidos para você"**, montada
+  pelo histórico de compra; um comprador recém-criado vê os mais populares;
+- no admin (`admin@origem.com.br`), a seção **Classificação (IA)** mostra a categoria sugerida para cada peça.
 
-Em `http://localhost:3000/produtos/1`, a seção de relacionados mostra os produtos 5, 9 e 3
-vindos do módulo, e cada exibição vira linhas novas em `ia-recomendacao/logs/recomendacao_log.jsonl`.
-Se o módulo for desligado, a mesma página continua abrindo e mostra só 5 e 9, do cálculo local
-(RF-08: o frontend trata 503 e timeout como "sem recomendações do módulo" e não exibe erro).
-
-Na página inicial (`http://localhost:3000/`), entre com `comprador@origem.com.br` / `origem123`:
-aparece a seção **"Escolhidos para você, Camila"** com os produtos 5, 7, 9 e 2, montada pelo
-histórico de compra. Um comprador recém-criado em `/cadastro` vê os mais populares (1, 3, 4 e 2).
-Visitantes, artesãos e administradores não veem a seção. Com o módulo desligado, Camila vê 5, 7
-e 9, calculados no navegador a partir dos pedidos da Fake API, e quem não tem compras não vê a
-seção.
-
-Sem `.env.local` — como no deploy da Vercel — o frontend usa apenas o cálculo local nas duas telas.
+Cada chamada vira uma linha em `ia-recomendacao/logs/uso_dados.jsonl` com `quem_chamou: backend`. Com o
+módulo desligado o site continua abrindo: as recomendações viram os mais vendidos e o selo de
+sentimento some.
 
 ---
 
@@ -268,123 +348,64 @@ Arquitetura em serviços (API, worker com fila, módulo de IA, lote e banco), lo
 paralelo com `ProcessPoolExecutor` e benchmark sequencial × paralelo (até 4,6× com 8 processos).
 Relatório, comandos e evidências em [`fccpd-u2/RELATORIO.md`](fccpd-u2/RELATORIO.md).
 
-## Como executar o projeto (frontend, Avaliação 1)
-
-Pré-requisitos: Node.js 20+ e npm.
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Acesse `http://localhost:3000`. Para gerar a build de produção: `npm run build && npm start`
-(também dentro de `frontend/`).
-
-### Contas de demonstração (login)
-
-Todas usam a senha **`origem123`**:
-
-| Perfil | E-mail |
-|---|---|
-| Comprador | `comprador@origem.com.br` |
-| Artesão | `maria@origem.com.br` |
-| Administrador | `admin@origem.com.br` |
-
-Também é possível criar uma conta nova em `/cadastro` (Comprador ou Artesão — ver
-"Autenticação e perfis de acesso" abaixo).
-
 ## Estrutura do repositório
 
 ```
-frontend/   aplicação Next.js (App Router) — o entregável desta avaliação
-backend/    API Node/Express + PostgreSQL: checkout concorrente e fila (FCCPD) e a API REST da U2
-            (Prisma, JWT em cookie, carrinho, pedidos, painel do artesão, cache) — ver backend/README.md
-ia-recomendacao/  módulo de recomendação em BentoML (AV2 de IA)
-evidencias/ saídas reais dos testes de concorrência e da fila (FCCPD)
-RELATORIO.md  relatório da entrega de FCCPD
-docs/       documentação do projeto
-  Origem_DDL.md    modelagem do banco de dados (referência para a Avaliação 2)
-  arquitetura.md   arquitetura em camadas do frontend e estratégia de integração futura
-  api.md           contrato da API REST da U2 (rotas, erros, mapeamento banco ↔ API)
-  plano-u2.md      plano de implementação da U2 (etapas, commits e prazos)
-  sdd/             SDD oficial do módulo de recomendação (versão entregue em 17/09)
-  modulo-recomendacao/  versão de trabalho anterior do SDD (só histórico)
-  uso-de-ia.md     registro do uso de IA generativa no desenvolvimento
+frontend/        site Next.js: app/ (rotas), components/, hooks/, services/api/ (única fronteira com a API)
+backend/         API Express: src/{routes,controllers,services,repositories,middlewares,config,utils},
+                 worker da fila, sql/ (DDL + seed), testes/api/, openapi.yaml — ver backend/README.md
+ia-recomendacao/ módulo de IA em BentoML (recomendação, sentimento, classificação, log de uso)
+fccpd-u2/        FCCPD U2: lote paralelo, benchmark, relatório e evidências
+evidencias/      evidências da U1 de FCCPD (concorrência e fila)
+evidencias-u2/   evidências da U2 de Web (banco, recomendação, assíncrono, navegador)
+RELATORIO.md     relatório da U1 de FCCPD
+render.yaml      configuração do Render (API e IA)
+docs/
+  arquitetura.md   arquitetura da U2 (site, API, worker, IA e banco)
+  api.md           contrato da API REST (rotas, erros, mapeamento banco ↔ API)
+  deploy.md        passo a passo do deploy
+  plano-u2.md      plano de implementação da U2
+  uso-de-ia.md     registro do uso de IA generativa
+  refatoracao/     desafio de code smells (Requisitos)
+  sdd/             SDD oficial do módulo de recomendação
+  Origem_DDL.md    modelagem do banco de dados
 ```
 
 ## Fluxos implementados
 
-- **Vitrine** (`/`) — destaques, filtro por categoria, mestres artesãos.
-- **Catálogo** (`/produtos`) — busca por texto, região, categoria, técnica, preço máximo e
-  disponibilidade em estoque; ordenação por preço.
-- **Detalhe do produto** (`/produtos/[id]`) — galeria, especificações, recomendações de peças
-  relacionadas (mesmo artesão/técnica/região) e **avaliações de compradores** (ver e enviar).
-- **Artesãos** (`/artesoes`, `/artesoes/[id]`) — listagem e perfil público com catálogo do
-  artesão.
-- **Carrinho** (`/carrinho`) — adicionar, remover, alterar quantidade, cálculo de frete/total.
-- **Checkout** (`/checkout` → `/checkout/sucesso`) — endereço de entrega, forma de pagamento
-  simulada (cartão/Pix/boleto), confirmação com código de pedido gerado e limpeza do carrinho.
-- **Login / Cadastro** (`/login`, `/cadastro`) — autenticação simulada e criação de conta como
-  comprador ou artesão.
-- **Meus pedidos** (`/pedidos`) — histórico de pedidos do comprador autenticado.
-- **Painel do artesão** (`/painel-artesao`) — visão geral, catálogo (editar/remover produto),
-  publicação de produto, pedidos recebidos, controle de estoque.
-- **Painel administrativo** (`/admin`) — indicadores da plataforma, fila de aprovação de novos
-  artesãos, listagem de artesãos e pedidos.
+Todos com dados do banco, pela API:
+
+- **Vitrine** (`/`) — destaques, filtro por categoria, mestres artesãos e "Escolhidos para você" (IA).
+- **Catálogo** (`/produtos`) — busca sem acento por nome, artesão ou técnica, filtros de região e
+  categoria (no banco), preço máximo e disponibilidade; ordenação por preço.
+- **Produto** (`/produtos/[id]`) — galeria, peças relacionadas (IA), avaliações com o sentimento de cada
+  comentário (IA) e envio de avaliação pelo comprador.
+- **Artesãos** (`/artesoes`, `/artesoes/[id]`) — perfil com avaliação média, vendas e peças calculadas.
+- **Carrinho** (`/carrinho`) — salvo no servidor para o comprador logado; o do visitante é juntado no login.
+- **Checkout** (`/checkout`) — revalida o estoque, cria o pedido pelo checkout seguro (sem vender além do
+  estoque), pagamento simulado; o pedido enfileira as notificações do comprador e das artesãs.
+- **Login / Cadastro** (`/login`, `/cadastro`) — sessão por cookie httpOnly, restaurada ao recarregar.
+- **Meus pedidos** (`/pedidos`, `/pedidos/[codigo]`).
+- **Painel do artesão** (`/painel-artesao`) — indicadores do banco, catálogo (criar, editar e desativar
+  produto), pedidos recebidos com mudança de status (cancelar devolve o estoque) e estoque.
+- **Painel administrativo** (`/admin`) — indicadores da plataforma, aprovação de artesãos, artesãos,
+  pedidos e a classificação automática das peças (IA).
 
 ## Autenticação e perfis de acesso
 
-Existem três perfis (`comprador`, `artesao`, `administrador`), mutuamente exclusivos:
+Três perfis, mutuamente exclusivos:
 
-- **Comprador** e **artesão** têm cadastro público (`/cadastro`). Todo cadastro de artesão
-  nasce **pendente de aprovação** e só aparece na vitrine depois que um administrador aprova
-  (painel `/admin`) — evita que qualquer pessoa se autopromova a vendedor sem revisão.
-- **Administrador** é a própria equipe do Origem: não existe tela pública para virar admin,
-  são contas provisionadas internamente (por isso só há uma conta demo desse perfil).
+- **Comprador** e **artesão** têm cadastro público (`/cadastro`). Todo artesão nasce **pendente** e só
+  aparece na vitrine depois que um administrador aprova.
+- **Administrador** é a equipe do Origem: não há cadastro público desse perfil.
 
-Login/sessão são simulados nesta fase (sem hash de senha nem JWT) — ver limitações abaixo.
-
-## Fake API — como foi estruturada
-
-O frontend nunca lê dados fixos dentro de páginas ou componentes. Toda informação passa por
-uma camada de serviços assíncronos que simula uma API real:
-
-```
-componente (app/ ou components/)
-   → hook (hooks/*.ts)                     — expõe { dado, carregando, erro, recarregar? }
-      → service (services/api/*.service.ts) — Promise + 300–500 ms de latência simulada
-         → mocks/*.mock.ts                  — dados sintéticos (a única fonte "crua")
-```
-
-Recursos simulados: **produtos, artesãos, usuários, categorias, técnicas, regiões, carrinho,
-pedidos, avaliações e recomendações**, além de indicadores agregados (painel admin/artesão).
-Toda tela que busca dado trata os três estados obrigatórios — carregando (`LoadingState`),
-erro (`ErrorState`) e vazio (`EmptyState`).
-
-O contrato da API REST que substitui a Fake API na Avaliação 2 (rotas, autenticação, erros e
-mapeamento banco ↔ API) está em **[`docs/api.md`](docs/api.md)**. A arquitetura em camadas
-e a estratégia de transição para o backend real estão em **[`docs/arquitetura.md`](docs/arquitetura.md)**.
-
-## Como a Fake API será substituída pelo backend real (Avaliação 2)
-
-Cada arquivo em `services/api/` é a única fronteira entre a interface e a fonte de dados.
-Na Avaliação 2, o corpo de cada função passa a chamar `fetch("/api/...")` contra o backend
-Node/Express + PostgreSQL (modelado em `docs/Origem_DDL.md`) em vez de ler `mocks/`. Como
-componentes e páginas só conversam com `hooks/`, e os hooks só conversam com `services/`,
-**nenhuma tela precisa ser reescrita** — a troca fica isolada nessa camada. Autenticação passa
-a usar sessão real (JWT/cookies) dentro de `authStore`/`useAuth`, e a Fake API para de existir.
-
-## Limitações conhecidas desta entrega (Avaliação 1)
-
-- Sem persistência real: os dados criados na sessão (novo produto, novo pedido, nova conta)
-  vivem em memória e voltam ao estado inicial a cada reinício do servidor.
-- Login sem hash de senha (todas as contas demo usam `origem123`) e sem token de sessão real.
-- Recomendação de produtos usa similaridade simples de atributos (técnica/artesão/região), não
-  um modelo de IA — candidato natural para evoluir na Avaliação 2.
+Senhas com bcrypt; login devolve um JWT de 8 h que também vai no cookie `origem_sessao` (`HttpOnly`,
+`SameSite=Lax`, `Secure` em produção). O site nunca guarda o token, e cada rota protegida confere o
+perfil carregado do banco a cada requisição.
 
 ## Status de publicação
 
-URL do DEPLOY: https://marketplace-da-economia-criativa.vercel.app/cadastro
+URL do deploy da U1 (frontend com Fake API): https://marketplace-da-economia-criativa.vercel.app
 
-**U2:** o passo a passo do deploy completo (banco no Neon, API e IA no Render, frontend na Vercel com o rewrite `/api`) está em [`docs/deploy.md`](docs/deploy.md).
+**U2:** o passo a passo do deploy completo (banco no Neon, API e IA no Render, site na Vercel com o
+rewrite `/api`) e as URLs publicadas ficam em [`docs/deploy.md`](docs/deploy.md).
