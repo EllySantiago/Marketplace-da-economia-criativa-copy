@@ -18,3 +18,5 @@ rotasAdmin.get("/admin/indicadores", ...admin, adminController.indicadores);
 rotasAdmin.get("/admin/artesoes/pendentes", ...admin, adminController.listarPendentes);
 rotasAdmin.patch("/admin/artesoes/:id/aprovar", ...admin, adminController.aprovar);
 rotasAdmin.delete("/admin/artesoes/:id", ...admin, adminController.rejeitar);
+// [E.6] Categoria sugerida pelo módulo de IA para cada produto da vitrine.
+rotasAdmin.get("/admin/classificacoes", ...admin, adminController.classificacoes);

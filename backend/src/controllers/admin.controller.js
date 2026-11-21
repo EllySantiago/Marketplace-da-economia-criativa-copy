@@ -3,6 +3,7 @@
 // ============================================================================
 
 import * as adminService from "../services/admin.service.js";
+import * as analisesService from "../services/analises.service.js";
 import { idDaUrl } from "../utils/validacao.js";
 
 export async function indicadores(_req, res) {
@@ -20,4 +21,8 @@ export async function aprovar(req, res) {
 export async function rejeitar(req, res) {
   await adminService.rejeitar(idDaUrl(req.params.id, "Artesão"));
   res.status(204).end();
+}
+
+export async function classificacoes(req, res) {
+  res.json(await analisesService.classificacoesDaVitrine(req.usuario));
 }

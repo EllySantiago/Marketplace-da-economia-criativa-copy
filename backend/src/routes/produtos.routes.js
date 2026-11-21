@@ -22,6 +22,8 @@ rotasProdutos.get("/produtos", autenticarSeHouver, produtosController.listar);
 // Mantém id, nome, preco, estoque e status: o teste de concorrência do FCCPD U1 lê o estoque por aqui.
 rotasProdutos.get("/produtos/:id", autenticarSeHouver, produtosController.buscarPorId);
 rotasProdutos.get("/produtos/:id/avaliacoes", autenticarSeHouver, produtosController.listarAvaliacoes);
+// [E.6] Sentimento das avaliações, calculado pelo módulo de IA e repassado pela API.
+rotasProdutos.get("/produtos/:id/sentimento", autenticarSeHouver, produtosController.sentimento);
 
 rotasProdutos.post("/produtos/:id/avaliacoes", autenticar, exigirPerfil("comprador"), produtosController.criarAvaliacao);
 

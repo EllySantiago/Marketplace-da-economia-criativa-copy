@@ -38,6 +38,7 @@ Para o frontend saber o que já pode trocar. As letras são as etapas de [`docs/
 | `POST`/`PUT`/`DELETE /produtos`, `/artesoes/eu/indicadores`, cache | C | ✅ pronto |
 | `POST` avaliações, `/admin/*`, `/recomendacoes/*` (repasse da IA) | E | ✅ pronto |
 | Swagger em `/docs` (especificação em `backend/openapi.yaml`, também em `/openapi.yaml`) | F | ✅ pronto |
+| `GET /produtos/:id/sentimento`, `GET /admin/classificacoes` (repasse da IA) | E.6 | ✅ pronto |
 
 ---
 
@@ -332,6 +333,31 @@ artesão → **404**.
 
 Produto escondido ou inexistente → **404**; `limite` fora de 1–20 → **400**; `/recomendacoes/eu` sem login
 → **401**, e artesão ou admin → **403**.
+
+## 7c. Rotas — sentimento e classificação (repasse do módulo de IA)
+
+Os outros dois modelos do módulo de IA chegam à aplicação Web pelo mesmo caminho das recomendações:
+o navegador pede à API, a API pede à IA (`RECOMENDACAO_URL`, mesmo tempo limite de 2 s) com o usuário
+do login e `X-Origem-Chamador: backend`. Código em `backend/src/services/analises.service.js`; o
+cliente HTTP da IA, comum às três rotas, fica em `backend/src/utils/modulo-ia.js`.
+
+| Método e rota | Acesso | Resposta |
+|---|---|---|
+| `GET /produtos/:id/sentimento` | público | **200** `{ produtoId, fonte, resumo, avaliacoes, modelo }` |
+| `GET /admin/classificacoes` | admin | **200** `{ fonte, itens }` |
+
+**Sentimento:** `resumo` = `{ total, porRotulo: { positivo, neutro, negativo }, rotuloGeral, pontuacaoMedia }`;
+`avaliacoes` = `[{ id, sentimento, pontuacao }]`, com o mesmo `id` de `GET /produtos/:id/avaliacoes` (o texto
+não é repetido). Produto escondido ou inexistente → **404**, sem chamar a IA.
+
+**Classificação:** para cada produto da vitrine, `{ produtoId, nome, artesao, categoriaAtual, classe,
+confianca, status, palavras }`. `status: "revisao"` quando a classe sugerida pelo texto difere da categoria
+cadastrada ou a confiança é baixa; esses vêm primeiro. A API faz no máximo 4 chamadas à IA ao mesmo tempo.
+
+**Com a IA fora** (erro, resposta sem sentido ou mais de 2 s), as duas rotas respondem **200** com
+`fonte: "indisponivel"` (`resumo: null`, listas vazias). Diferente da recomendação, não há resposta de
+reserva que faça sentido, então a tela só esconde o selo ou mostra um aviso. Na classificação, o
+primeiro produto vai sozinho: se ele falhar, a resposta sai na hora, sem esperar o tempo limite de cada um.
 
 ## 8. Rotas do FCCPD U1 que continuam
 
