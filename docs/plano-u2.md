@@ -14,29 +14,31 @@
 
 ---
 
-## Andamento (atualizado em 15/11/2026)
+## Andamento (atualizado em 21/11/2026)
 
 | Etapa | Situação | PR |
 |---|---|---|
 | 0 | ✅ concluída em 14/11 | #9 (catálogo), #10 (SDD e este plano) |
 | A | ✅ concluída em 14/11 | #11 |
 | B | ✅ concluída em 14/11 | #12 |
-| D | ✅ concluída em 14/11 (adiantada, porque o H1 espera a instalação do `uv`) | #13 |
+| D | ✅ concluída em 14/11 | #13 |
 | C | ✅ concluída em 14/11 | #14 |
-| H1 | ⏳ esperando o `uv` (H1.0); H1.1 com a Drielly até 17/11 | — |
-| I | ⏳ entrega em 24/11; I.2 com a Drielly até 19/11 | — |
-| H2 | ⏳ entrega em 27/11 | — |
-| E | ⏳ próxima etapa de Web | — |
-| F | ⏳ depois da E | — |
-| G | ⏳ Thainá: leitura do catálogo, sessão, carrinho, pedidos e painel já liberados na API | — |
-| J | ⏳ deploy de teste (J.0) em 21/11 | — |
-| K | ⏳ 25–30/11 | — |
-| L | ⏳ 30/11–02/12 | — |
+| K | ✅ Everton, Drielly e Thainá (a Ana saiu do grupo) | #16, #17, #18 |
+| H1 | ✅ concluída em 20/11 (seed do Pilar, funções de acesso, retrato JSON) | #19 |
+| I | ✅ concluída em 20/11; falta enviar no Classroom e ensaiar (24/11) | #20 |
+| H2 | ✅ concluída em 21/11; falta enviar no Classroom (27/11) | #21 |
+| E | ✅ concluída em 21/11 | #22 |
+| F | ✅ concluída em 21/11 | #23 |
+| J (código) | ✅ concluída em 21/11; falta o deploy de verdade (contas no Neon, Render e Vercel) | #24 |
+| E.6 | ✅ sentimento e classificação da IA pela API | #25 |
+| G | ✅ G.1–G.8, frontend sem Fake API (assumida pelo Everton em 21/11) | #26 |
+| L | ✅ L.1–L.3 e L.5 (evidências locais); falta regravar as evidências no ambiente publicado e o vídeo | #27 |
 
-- `main` em `0913392`: **109 testes** da API passando; bateria do FCCPD U1 com os mesmos vereditos.
-- Plano de Testes v2.5 (15/11): 26 de 30 casos executados; faltam CT-06 e CT-07 (E), CT-18 (H) e CT-10 (tela).
-- **Achado em aberto:** a view `vw_indicadores_artesao` soma pedidos cancelados e só conta `pendente`
-  (todo pedido novo nasce `confirmado`). A API calcula os indicadores sem ela; a correção da view fica com a Drielly.
+- Testes: **149** da API (`npm test`) e o roteiro do navegador com **18/18** verificações (`evidencias-u2/`).
+- **Equipe desde 20/11:** Everton = Web backend e frontend, FCCPD e IA; Thainá = frontend; Aline = BD;
+  Drielly = Requisitos (Plano de Testes, validação e refatorações).
+- **Achado em aberto:** a view `vw_indicadores_artesao` soma pedidos cancelados e só conta `pendente`.
+  A API calcula os indicadores sem ela; a correção da view está com a Aline (BD).
 - A ordem real mudou em relação à agenda abaixo (D e C vieram antes do H1); a agenda fica como registro do plano original.
 
 ## Divisão aprovada em 14/11/2026
