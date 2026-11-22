@@ -4,8 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useProduto } from "@/hooks/useProdutos";
 import { useArtesao } from "@/hooks/useArtesoes";
-import { recomendacoesService } from "@/services/api/recomendacoes.service";
-import type { Produto } from "@/types/produto";
+import { useRecomendacoesSimilares } from "@/hooks/useRecomendacoes";
 import ProductPurchase from "./ProductPurchase";
 import ProductCard from "./ProductCard";
 import ProductReviews from "./ProductReviews";
@@ -18,20 +17,11 @@ import { ROTAS } from "@/constants/rotas";
 export default function ProductDetails({ produtoId }: { produtoId: number }) {
   const { produto, carregando, erro } = useProduto(produtoId);
   const { artesao } = useArtesao(produto?.artesaoId ?? -1);
-  const [relacionados, setRelacionados] = useState<Produto[]>([]);
+  const relacionados = useRecomendacoesSimilares(produto?.id ?? null, 3);
   const [imagemSelecionada, setImagemSelecionada] = useState(0);
 
   useEffect(() => {
     setImagemSelecionada(0);
-    if (!produto) return;
-    let ativo = true;
-    recomendacoesService
-      .recomendarSimilares(produto.id, 3)
-      .then((resultado) => ativo && setRelacionados(resultado))
-      .catch(() => ativo && setRelacionados([]));
-    return () => {
-      ativo = false;
-    };
   }, [produto?.id]);
 
   if (carregando) {

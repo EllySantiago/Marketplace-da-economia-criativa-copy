@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import PublicLayout from "@/components/layout/PublicLayout";
 import { useCarrinho } from "@/hooks/useCarrinho";
 import { useAuth } from "@/hooks/useAuth";
 import { useCriarPedido } from "@/hooks/usePedidos";
+import { useRecurso } from "@/hooks/useRecurso";
 import { carrinhoService, type ProblemaEstoque } from "@/services/api/carrinho.service";
 import { Input } from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
@@ -29,21 +30,12 @@ export default function CheckoutPage() {
   const { criar, enviando, erro } = useCriarPedido();
   const [endereco, setEndereco] = useState("");
   const [metodoPagamento, setMetodoPagamento] = useState<MetodoPagamento>("cartao");
-  const [problemasEstoque, setProblemasEstoque] = useState<ProblemaEstoque[]>([]);
 
   // Revalida o estoque a cada visita ao checkout (POST /carrinho/validar): o carrinho não reserva
   // estoque, então outra pessoa pode ter comprado a peça. A garantia final é do checkout seguro da API.
-  useEffect(() => {
-    if (itens.length === 0) return;
-    let ativo = true;
-    carrinhoService
-      .validarEstoque(itens)
-      .then((problemas) => ativo && setProblemasEstoque(problemas))
-      .catch(() => ativo && setProblemasEstoque([]));
-    return () => {
-      ativo = false;
-    };
-  }, [itens]);
+  // Erro na validação = lista vazia: quem decide de verdade é o POST /pedidos.
+  const chaveItens = itens.length ? JSON.stringify(itens.map((item) => [item.produto.id, item.quantidade])) : null;
+  const { dado: problemasEstoque } = useRecurso(chaveItens, () => carrinhoService.validarEstoque(itens), [] as ProblemaEstoque[]);
 
   async function handleSubmit(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();

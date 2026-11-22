@@ -1,110 +1,40 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
 import type { Artesao } from "@/types/artesao";
 import { artesoesService, type IndicadoresArtesao } from "@/services/api/artesoes.service";
+import { useRecurso } from "./useRecurso";
 
-/** Lista todos os artesãos, tratando carregando/erro/vazio. */
+/** Lista os artesãos aprovados, tratando carregando/erro/vazio. */
 export function useArtesoes() {
-  const [artesoes, setArtesoes] = useState<Artesao[]>([]);
-  const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState<string | null>(null);
-
-  useEffect(() => {
-    let ativo = true;
-    artesoesService
-      .listarTodos()
-      .then((resultado) => ativo && setArtesoes(resultado))
-      .catch((erroCapturado: Error) => ativo && setErro(erroCapturado.message))
-      .finally(() => ativo && setCarregando(false));
-    return () => {
-      ativo = false;
-    };
-  }, []);
-
-  return { artesoes, carregando, erro };
+  const { dado, carregando, erro } = useRecurso("todos", () => artesoesService.listarTodos(), [] as Artesao[]);
+  return { artesoes: dado, carregando, erro };
 }
 
-/** Busca um artesão por id, tratando carregando/erro/não encontrado. */
+/** Busca um artesão por id, tratando carregando/erro/não encontrado. Id ainda desconhecido: espera. */
 export function useArtesao(id: number) {
-  const [artesao, setArtesao] = useState<Artesao | null>(null);
-  const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState<string | null>(null);
-
-  useEffect(() => {
-    // Id ainda desconhecido (ex.: produto ou usuário carregando): espera, sem chamar a API.
-    if (!(id > 0)) {
-      setArtesao(null);
-      setCarregando(false);
-      return;
-    }
-    let ativo = true;
-    setCarregando(true);
-    setErro(null);
-    artesoesService
-      .buscarPorId(id)
-      .then((resultado) => ativo && setArtesao(resultado))
-      .catch((erroCapturado: Error) => ativo && setErro(erroCapturado.message || "Artesão não encontrado."))
-      .finally(() => ativo && setCarregando(false));
-    return () => {
-      ativo = false;
-    };
-  }, [id]);
-
-  return { artesao, carregando, erro };
+  const { dado, carregando, erro } = useRecurso(id > 0 ? `${id}` : null, () => artesoesService.buscarPorId(id), null as Artesao | null, "Artesão não encontrado.");
+  return { artesao: dado, carregando, erro };
 }
 
 /** Fila de artesãos pendentes de aprovação, usada no Painel Administrativo. */
 export function useArtesoesPendentes() {
-  const [pendentes, setPendentes] = useState<Artesao[]>([]);
-  const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState<string | null>(null);
-
-  const carregar = useCallback(() => {
-    setCarregando(true);
-    artesoesService
-      .listarPendentes()
-      .then(setPendentes)
-      .catch((erroCapturado: Error) => setErro(erroCapturado.message))
-      .finally(() => setCarregando(false));
-  }, []);
-
-  useEffect(() => {
-    carregar();
-  }, [carregar]);
+  const { dado, carregando, erro, recarregar } = useRecurso("pendentes", () => artesoesService.listarPendentes(), [] as Artesao[]);
 
   async function aprovar(id: number) {
     await artesoesService.aprovar(id);
-    carregar();
+    recarregar();
   }
 
   async function rejeitar(id: number) {
     await artesoesService.rejeitar(id);
-    carregar();
+    recarregar();
   }
 
-  return { pendentes, carregando, erro, aprovar, rejeitar };
+  return { pendentes: dado, carregando, erro, aprovar, rejeitar };
 }
 
 /** Indicadores do painel do artesão logado (GET /artesoes/eu/indicadores), com recarga após mudanças. */
 export function useIndicadoresArtesao(ativo: boolean) {
-  const [indicadores, setIndicadores] = useState<IndicadoresArtesao | null>(null);
-  const [erro, setErro] = useState<string | null>(null);
-
-  const carregar = useCallback(() => {
-    if (!ativo) return;
-    artesoesService
-      .indicadores()
-      .then((resultado) => {
-        setIndicadores(resultado);
-        setErro(null);
-      })
-      .catch((erroCapturado: Error) => setErro(erroCapturado.message));
-  }, [ativo]);
-
-  useEffect(() => {
-    carregar();
-  }, [carregar]);
-
-  return { indicadores, erro, recarregar: carregar };
+  const { dado, erro, recarregar } = useRecurso(ativo ? "eu" : null, () => artesoesService.indicadores(), null as IndicadoresArtesao | null);
+  return { indicadores: dado, erro, recarregar };
 }
