@@ -6,6 +6,9 @@
 # Variáveis com "sync: false" são pedidas pelo Render na hora de criar o
 # Blueprint (endereços e senhas não ficam no repositório).
 # Este é o ÚNICO arquivo específico do Render: o código só lê variáveis de ambiente.
+#
+# Região: ohio, a mesma do banco no Neon (aws us-east-2). A IA faz várias
+# consultas por recomendação; longe do banco, elas passam do teto de 2 s.
 # ============================================================================
 
 services:
@@ -14,10 +17,12 @@ services:
     name: origem-api
     runtime: node
     plan: free
+    region: ohio
     rootDir: backend
     # --include=dev: o Prisma CLI (devDependency) gera o client no postinstall.
     buildCommand: npm ci --include=dev
-    startCommand: npm run api
+    # Na primeira subida cria as tabelas e o seed; nas seguintes só confere.
+    startCommand: npm run banco:criar -- --se-vazio && npm run api
     healthCheckPath: /saude
     envVars:
       - key: NODE_ENV
@@ -27,7 +32,7 @@ services:
       # O Render gratuito não tem worker: a fila roda dentro da API (J.1).
       - key: WORKER_EMBUTIDO
         value: "true"
-      # Endereço do Neon, com ?sslmode=require.
+      # Endereço do Neon SEM pooling (o host sem "-pooler"), com ?sslmode=require.
       - key: DATABASE_URL
         sync: false
       # O plano gratuito do Neon aceita poucas conexões: pool menor que o local.
@@ -52,6 +57,7 @@ services:
     name: origem-ia
     runtime: python
     plan: free
+    region: ohio
     rootDir: ia-recomendacao
     buildCommand: pip install uv && uv sync --frozen
     startCommand: uv run bentoml serve service:RecomendadorOrigem --host 0.0.0.0 --port $PORT
