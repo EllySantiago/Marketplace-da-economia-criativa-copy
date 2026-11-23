@@ -98,3 +98,16 @@ e não aprovar errado, que é o lado certo para errar.
   de base e para achar onde ela erra, e não como estimativa precisa.
 - Rótulos dados pela equipe, com texto fictício. Não há avaliações nem cadastros reais no
   repositório, e isso é de propósito (sem dados pessoais).
+- Revisão dos rótulos em 23/11, feita depois das medições. Os conjuntos não foram alterados,
+  para não mexer no teste depois de ver o resultado, e os problemas ficam registrados aqui:
+  - **"Jogo Americano de Fuxico" (1009) está como Renda, mas fuxico é costura de retalho.**
+    Como o Origem só tem 4 categorias, Renda é a mais próxima, e a palavra "fuxico" está nas
+    palavras-chave de Renda. Esse acerto vem da própria lista da regra: sem ele, o produto
+    ficaria "indefinida" e o teste daria **67% (8/12)**. O número honesto fica entre 67% e 75%.
+  - "Toalhinha de Labirinto" (1007) diz "tear de bastidor", mas labirinto se faz em bastidor,
+    sem tear. É erro de texto e não muda o resultado.
+  - "Porta-documentos Sertanejo" (1012) é descrito como "carteira de bolso". Também é palavra-chave
+    de Couro, mas a descrição já diz "couro legítimo", então o acerto não depende dela.
+  - No sentimento, a avaliação 212 ("Bonito, porém a alça é curta para mim", neutro) é parecida
+    com a 116 ("Gostei bastante, só a caixa veio amassada", positivo). Os dois rótulos são
+    defensáveis, e é o caso mais discutível do conjunto.
