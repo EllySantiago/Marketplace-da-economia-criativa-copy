@@ -1,0 +1,239 @@
+seg, 23 de nov de 2026 05:38:54
+v24.16.0
+main
+72f8f51
+▶ permissões
+  ✔ sem login: 401 em todas as rotas (64.5884ms)
+  ✔ comprador e artesão: 403 em todas as rotas (246.6562ms)
+✔ permissões (2845.7057ms)
+▶ GET /admin/indicadores
+  ✔ os quatro números vêm da vw_indicadores_admin (177.852ms)
+✔ GET /admin/indicadores (178.6913ms)
+▶ artesãos pendentes
+  ✔ a lista traz o pendente e nenhum aprovado (327.4211ms)
+  ✔ aprovar: 200, sai da lista de pendentes e o produto dele entra na vitrine (906.757ms)
+  ✔ aprovar de novo quem já está aprovado: 200, sem mudar nada (141.7372ms)
+  ✔ rejeitar artesão aprovado: 400, e ele continua lá (166.8464ms)
+  ✔ rejeitar pendente: 204, apaga o usuário e os produtos dele (inclusive classificados pela IA) (176.5269ms)
+  ✔ id inexistente, de comprador ou não numérico: 404 (189.2251ms)
+✔ artesãos pendentes (1911.8519ms)
+▶ GET /produtos/:id/sentimento
+  ✔ repassa o resumo e o rótulo de cada avaliação, sem o lixo da IA (232.2264ms)
+  ✔ leva o usuário do login para a IA, e não o do navegador (72.6805ms)
+[sentimento] módulo de IA indisponível (Error: módulo de IA respondeu 503); a tela segue sem o selo.
+  ✔ IA erro: 200 com fonte "indisponivel" (78.4454ms)
+[sentimento] módulo de IA indisponível (TimeoutError: The operation was aborted due to timeout); a tela segue sem o selo.
+  ✔ IA lenta: 200 com fonte "indisponivel" (377.4344ms)
+[sentimento] módulo de IA indisponível (SyntaxError: Unexpected token 'i', "isto não é JSON" is not valid JSON); a tela segue sem o selo.
+  ✔ IA lixo: 200 com fonte "indisponivel" (65.3259ms)
+  ✔ produto inexistente: 404, sem chamar a IA (44.2504ms)
+✔ GET /produtos/:id/sentimento (1987.4105ms)
+▶ GET /admin/classificacoes
+  ✔ classifica cada produto da vitrine, com os que precisam de revisão primeiro (265.6668ms)
+[classificacao] módulo de IA indisponível (Error: módulo de IA respondeu 503); o painel mostra o aviso.
+  ✔ IA fora: responde logo, com fonte "indisponivel" e uma chamada só (127.6672ms)
+  ✔ sem login: 401; artesão: 403 (39.2869ms)
+✔ GET /admin/classificacoes (434.3873ms)
+▶ POST /auth/login
+  ✔ comprador do seed entra e recebe token + usuário, sem senha (593.1286ms)
+  ✔ artesão recebe artesaoId igual ao próprio id (224.1586ms)
+  ✔ e-mail não diferencia maiúsculas (224.3848ms)
+  ✔ senha errada e e-mail inexistente dão a MESMA resposta (443.3669ms)
+  ✔ corpo sem senha devolve 400 (22.4649ms)
+✔ POST /auth/login (1513.2848ms)
+▶ POST /auth/registrar
+  ✔ comprador se cadastra e o token já funciona em /auth/eu (524.6465ms)
+  ✔ a senha é guardada com bcrypt, nunca em texto puro (373.4097ms)
+  ✔ artesão com região: cria usuário + artesão NÃO aprovado (271.1195ms)
+  ✔ artesão sem região ou com região inexistente: 400 e nada é gravado (38.9862ms)
+  ✔ e-mail já cadastrado (qualquer caixa) devolve 409 (20.2416ms)
+  ✔ cadastro SIMULTÂNEO com o mesmo e-mail: o segundo recebe 409, não 500 (481.8966ms)
+  ✔ ninguém se cadastra como administrador (14.0057ms)
+  ✔ validações: senha curta, senha longa demais, e-mail inválido, nome vazio (43.5359ms)
+  ✔ senhas nos limites (6 e 72 caracteres) são aceitas (787.0641ms)
+✔ POST /auth/registrar (2558.9669ms)
+▶ GET /auth/eu e tokens
+  ✔ sem token: 401 (15.111ms)
+  ✔ cabeçalho em outro formato (Basic): 401 (13.2589ms)
+  ✔ token adulterado, assinado com outro segredo ou sem assinatura: 401 (279.1945ms)
+  ✔ token expirado: 401 com mensagem de sessão expirada (14.9459ms)
+  ✔ token válido de conta apagada: 401 (247.2391ms)
+  ✔ o perfil vem do banco, não do token (19.9672ms)
+✔ GET /auth/eu e tokens (591.4839ms)
+▶ GET /usuarios/:id
+  ✔ o próprio usuário: 200 (197.6994ms)
+  ✔ outro usuário: 403, exista ou não o id (227.4202ms)
+  ✔ administrador vê qualquer usuário; id inexistente: 404 (294.5206ms)
+  ✔ sem token: 401 (25.0131ms)
+✔ GET /usuarios/:id (745.7814ms)
+▶ POST /produtos/:id/avaliacoes
+  ✔ comprador avalia: 201, autor do login, e a avaliação aparece primeiro na lista (283.4569ms)
+  ✔ segunda avaliação do mesmo comprador no mesmo produto: 409 (175.9497ms)
+  ✔ outro comprador pode avaliar o mesmo produto; comentário é opcional (82.0309ms)
+  ✔ nota fora de 1 a 5, não inteira ou ausente, e comentário longo demais: 400 (241.4106ms)
+  ✔ sem login: 401; artesão: 403 (53.9218ms)
+  ✔ produto inexistente ou escondido da vitrine: 404 (83.5381ms)
+  ✔ duas avaliações ao mesmo tempo: só uma entra (a UNIQUE do banco decide) (227.8046ms)
+✔ POST /produtos/:id/avaliacoes (2737.4184ms)
+▶ carrinho do comprador
+  ✔ começa vazio (122.5482ms)
+  ✔ PUT grava os itens com o produto completo e o preço do banco (337.9784ms)
+  ✔ PUT substitui o carrinho inteiro (não soma) (214.8892ms)
+  ✔ o preço enviado pelo navegador é ignorado (156.0454ms)
+  ✔ DELETE esvazia (204) e PUT com lista vazia também (429.7961ms)
+  ✔ entradas inválidas: 400 e o carrinho não muda (367.9135ms)
+  ✔ produto inativo ou de artesão não aprovado não entra no carrinho (118.2474ms)
+  ✔ sem login: 401; artesão: 403 (100.8566ms)
+✔ carrinho do comprador (3300.6946ms)
+▶ POST /carrinho/validar
+  ✔ tudo em estoque: lista vazia (41.5802ms)
+  ✔ aponta quantidade acima do estoque, produto esgotado e produto inexistente (66.395ms)
+  ✔ produto fora da vitrine aparece como indisponível, mesmo com estoque no banco (44.7766ms)
+  ✔ lista vazia ou malformada: 400 (39.0084ms)
+✔ POST /carrinho/validar (200.382ms)
+▶ GET /filtros
+  ✔ devolve as opções do banco (244.8199ms)
+✔ GET /filtros (1346.9974ms)
+▶ GET /produtos
+  ✔ lista o catálogo do seed no formato Produto, em ordem de id (179.4801ms)
+  ✔ vitrine pública: sem inativo e sem produto de artesão não aprovado (18.802ms)
+  ✔ o dono, filtrando pelo próprio artesaoId, vê também os inativos (145.2848ms)
+  ✔ filtros por nome; 'Todas' e vazio são ignorados (211.9314ms)
+  ✔ busca sem diferenciar maiúsculas e acentos, em produto, artesão e técnica (486.2771ms)
+  ✔ % e _ na busca são texto, não curinga (143.0544ms)
+  ✔ artesaoId inválido ou parâmetro repetido → 400 (34.396ms)
+  ✔ token vencido ou inválido não derruba a vitrine: segue como visitante (28.4828ms)
+✔ GET /produtos (1254.231ms)
+▶ GET /produtos/:id
+  ✔ produto público para qualquer um (50.6407ms)
+  ✔ inativo: 404 para visitante e outros; visível para o dono e o admin (333.8507ms)
+  ✔ id inexistente ou não numérico → 404 NAO_ENCONTRADO (44.11ms)
+✔ GET /produtos/:id (430.6635ms)
+▶ GET /produtos/:id/avaliacoes
+  ✔ mais recentes primeiro, com o nome do autor (56.6092ms)
+  ✔ produto sem avaliação → lista vazia; produto escondido → 404 (97.571ms)
+✔ GET /produtos/:id/avaliacoes (154.9919ms)
+▶ GET /artesoes
+  ✔ só aprovados, com os campos calculados (328.6963ms)
+  ✔ artesão sem avaliação, sem venda e sem ano informado (122.6886ms)
+✔ GET /artesoes (452.1507ms)
+▶ GET /artesoes/:id
+  ✔ aprovado é público (80.3961ms)
+  ✔ pendente: 404 para o público, visível para ele mesmo e para o admin (278.9805ms)
+  ✔ comprador não é artesão → 404; id inválido → 404 (54.5411ms)
+✔ GET /artesoes/:id (414.8589ms)
+✔ GET /saude responde com o banco de pé (638.7976ms)
+✔ rota inexistente devolve 404 em JSON, não HTML (24.0842ms)
+✔ JSON malformado devolve 400 CORPO_INVALIDO (101.9771ms)
+✔ POST /pedidos sem login devolve 401; com login e corpo incompleto, 400 sem tocar no banco (409.7191ms)
+✔ GET /produtos/:id mantém os campos que os testes do FCCPD leem (162.9244ms)
+✔ GET /produtos/:id inexistente devolve 404 NAO_ENCONTRADO (23.9836ms)
+✔ CORS libera a origem do frontend (22.4425ms)
+✔ CORS não libera origem desconhecida (15.7846ms)
+✔ erro inesperado vira 500 genérico, sem expor a mensagem original (1.2239ms)
+✔ ErroApi vira a resposta do contrato com status e código (2.711ms)
+▶ openapi.yaml
+  ✔ documenta todas as rotas do Express, e só elas (77.9901ms)
+  ✔ todo $ref aponta para algo que existe (3.6195ms)
+  ✔ toda rota com cadeado (security) tem resposta 401 (5.1894ms)
+✔ openapi.yaml (93.583ms)
+▶ Swagger UI
+  ✔ GET /docs/ abre a interface (306.6093ms)
+  ✔ GET /openapi.yaml devolve a especificação (27.6292ms)
+✔ Swagger UI (335.8037ms)
+▶ POST /produtos
+  ✔ cria com o dono do login, os nomes do banco e a imagem principal (354.487ms)
+  ✔ categoria, técnica ou região desconhecida: 400 (142.3658ms)
+  ✔ validações: preço, estoque, imagem e nome (187.2178ms)
+  ✔ sem login: 401; comprador: 403 (29.981ms)
+✔ POST /produtos (1836.7111ms)
+▶ PUT /produtos/:id
+  ✔ o dono edita os dados e a foto principal; as outras fotos ficam (202.4451ms)
+  ✔ outro artesão: 403; produto inexistente: 404; corpo inválido: 400 (117.0127ms)
+✔ PUT /produtos/:id (321.9243ms)
+▶ DELETE /produtos/:id
+  ✔ desativa (exclusão lógica): some da vitrine, fica no painel e nos pedidos antigos (733.6828ms)
+✔ DELETE /produtos/:id (738.39ms)
+▶ GET /artesoes/eu/indicadores
+  ✔ artesão sem vendas: tudo zero (153.4415ms)
+  ✔ conta só a parte dele, sem cancelados; pendente = ainda não começou a produzir (1332.3932ms)
+  ✔ comprador: 403; sem login: 401 (28.3157ms)
+✔ GET /artesoes/eu/indicadores (1515.3269ms)
+▶ cache da vitrine e dos filtros
+  ✔ a segunda leitura vem da memória (X-Cache: HIT) (122.6473ms)
+  ✔ produto gravado direto no banco não aparece até o cache vencer; pela API, aparece na hora (318.3745ms)
+  ✔ uma compra limpa o cache: o estoque novo aparece na vitrine (358.2587ms)
+  ✔ o painel do dono nunca usa cache (103.8107ms)
+✔ cache da vitrine e dos filtros (904.5278ms)
+▶ POST /pedidos
+  ✔ cria o pedido do contrato: preço do banco, frete, previsão +8 dias, pagamento e baixa de estoque (336.5962ms)
+  ✔ frete grátis a partir de R$ 400 (190.5517ms)
+  ✔ enfileira o aviso ao comprador e a cada artesão do pedido (fila do FCCPD U1) (202.2192ms)
+  ✔ sem estoque: 409 e NADA muda (nem o item que tinha estoque) (81.2315ms)
+  ✔ produto inexistente, inativo ou de artesão não aprovado: 404 (120.2588ms)
+  ✔ corpo inválido: 400 (153.9462ms)
+  ✔ sem login: 401; artesão ou admin comprando: 403 (210.087ms)
+  ✔ o pedido esvazia o carrinho salvo (485.8632ms)
+  ✔ compras simultâneas do último estoque: vendem exatamente o que existe (1723.6479ms)
+  ✔ o pedido guarda o preço pago, mesmo se o produto ficar mais caro depois (154.6673ms)
+✔ POST /pedidos (5421.3807ms)
+▶ GET /pedidos e GET /pedidos/:codigo
+  ✔ comprador vê só os dele, mais recentes primeiro (59.0251ms)
+  ✔ artesão vê os que têm item dele; admin vê todos, inclusive os do seed (111.8451ms)
+  ✔ pedidos do seed para o comprador de demonstração (189.7049ms)
+  ✔ detalhe: dono e artesão com item sim; outro comprador e artesão sem item 403; inexistente 404 (252.8794ms)
+✔ GET /pedidos e GET /pedidos/:codigo (614.5892ms)
+▶ PATCH /pedidos/:codigo/status
+  ✔ segue as transições até entregue; pular etapa ou voltar é 400 (464.3236ms)
+  ✔ cancelar devolve o estoque de todos os itens (238.4256ms)
+  ✔ dois cancelamentos ao mesmo tempo devolvem o estoque UMA vez (197.9046ms)
+  ✔ só o artesão com item no pedido: comprador, admin e outro artesão recebem 403 (87.8994ms)
+✔ PATCH /pedidos/:codigo/status (989.4521ms)
+▶ GET /recomendacoes/produtos/:id
+  ✔ repassa a IA na ordem dela, com os dados do banco e fonte "ia" (325.4552ms)
+  ✔ tira o que não está mais na vitrine, o que não existe e a própria referência (142.954ms)
+[recomendacoes] módulo de IA indisponível (Error: módulo de IA respondeu 503); usando popularidade.
+[recomendacoes] módulo de IA indisponível (SyntaxError: Unexpected token 'i', "isto não é JSON" is not valid JSON); usando popularidade.
+[recomendacoes] módulo de IA indisponível (TypeError: fetch failed); usando popularidade.
+  ✔ IA fora do ar, com erro ou com resposta sem sentido: mais vendidos, fonte "popularidade" (449.6603ms)
+[recomendacoes] módulo de IA indisponível (TimeoutError: The operation was aborted due to timeout); usando popularidade.
+  ✔ IA lenta: responde pela popularidade logo depois do timeout (RF-08) (435.7843ms)
+[recomendacoes] módulo de IA indisponível (Error: módulo de IA respondeu 503); usando popularidade.
+  ✔ popularidade: mais vendidos primeiro e no máximo 2 do mesmo artesão (RNF-06) (143.9913ms)
+  ✔ produto inexistente ou limite inválido: 404 e 400, sem chamar a IA (104.5146ms)
+✔ GET /recomendacoes/produtos/:id (2281.2818ms)
+▶ GET /recomendacoes/eu
+  ✔ usa o usuário do TOKEN no caminho e no cabeçalho X-Usuario-Id (74.833ms)
+  ✔ um X-Usuario-Id forjado pelo cliente não muda nada (60.9572ms)
+  ✔ sem login: 401; artesão: 403 (41.0974ms)
+[recomendacoes] módulo de IA indisponível (Error: módulo de IA respondeu 503); usando popularidade.
+  ✔ IA fora: mais vendidos (padrão de 8 itens) (243.8481ms)
+✔ GET /recomendacoes/eu (424.5355ms)
+▶ gravação do cookie
+  ✔ login grava o mesmo token do corpo, httpOnly, SameSite=Lax, vencendo junto com o token (535.5743ms)
+  ✔ cadastro também grava o cookie (232.4498ms)
+  ✔ login recusado não grava cookie (212.9624ms)
+  ✔ em produção o cookie exige HTTPS (Secure) (1.8922ms)
+✔ gravação do cookie (989.8293ms)
+▶ autenticação pelo cookie
+  ✔ /auth/eu funciona só com o cookie (210.8199ms)
+  ✔ regras de permissão valem igual: o próprio usuário sim, outro não (236.7129ms)
+  ✔ cookie adulterado ou vencido em rota protegida: 401 (335.1354ms)
+  ✔ cookie inválido em rota pública: segue como visitante (127.3009ms)
+  ✔ o cabeçalho Bearer manda sobre o cookie (476.4384ms)
+✔ autenticação pelo cookie (1389.9497ms)
+▶ POST /auth/sair
+  ✔ apaga o cookie (mesmo caminho, data no passado) e responde 204, sem exigir login (49.2393ms)
+✔ POST /auth/sair (49.8598ms)
+▶ CORS com credenciais
+  ✔ a origem do frontend pode enviar o cookie (33.6655ms)
+  ✔ origem desconhecida não é liberada (22.0892ms)
+✔ CORS com credenciais (57.0919ms)
+ℹ tests 149
+ℹ suites 34
+ℹ pass 149
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 19020.3246

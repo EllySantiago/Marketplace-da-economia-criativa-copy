@@ -3,18 +3,18 @@
 > Plano da equipe para a Unidade 2. Contrato da API: [`docs/api.md`](api.md). SDD do módulo de recomendação: ver o README.
 > Status de cada grupo de rotas: tabela "Status da implementação" em `docs/api.md`.
 
-**Data:** 14/11/2026 · **Versão:** 1.1, validada (ver seção final) · **Base:** documento de requisitos do PI 2026.2 e levantamento do que já existia no repositório
+**Data:** 23/11/2026 · **Versão:** 1.2, atualização de andamento · **Base:** documento de requisitos do PI 2026.2 e situação confirmada do repositório
 **Prazos que guiam a ordem:** FCCPD P2 **24/11** · IA Projeto Final **27/11** · Web projeto **02/12**
 (17/11 e 26/11 são atividades individuais ou em dupla de Web, fora do PI: não há etapa para elas, só tempo reservado.)
 
 **Cadeiras:** `WEB` Desenvolvimento Web · `FCCPD` Concorrente/Distribuída · `IA` IA Aplicada · `REQ` Requisitos
 (BD e Projetos 4 servem só de base: nenhuma etapa é para elas.)
 
-**Quem:** Everton = backend/API e IA · Thainá = frontend · Drielly = SQL/seed · Ana = testes e aceite.
+**Equipe atual:** Everton = backend/API, FCCPD e IA · Thainá = frontend · Aline = banco de dados · Drielly = Requisitos, testes, refatoração e validação.
 
 ---
 
-## Andamento (atualizado em 21/11/2026)
+## Andamento (atualizado em 23/11/2026)
 
 | Etapa | Situação | PR |
 |---|---|---|
@@ -29,32 +29,29 @@
 | H2 | ✅ concluída em 21/11; falta enviar no Classroom (27/11) | #21 |
 | E | ✅ concluída em 21/11 | #22 |
 | F | ✅ concluída em 21/11 | #23 |
-| J (código) | ✅ concluída em 21/11; falta o deploy de verdade (contas no Neon, Render e Vercel) | #24 |
+| J (código) | ✅ concluída em 21/11; configuração de criação automática do banco e região dos serviços em revisão | #24, #29 (PR #29 aberto) |
 | E.6 | ✅ sentimento e classificação da IA pela API | #25 |
 | G | ✅ G.1–G.8, frontend sem Fake API (assumida pelo Everton em 21/11) | #26 |
 | L | ✅ L.1–L.3 e L.5 (evidências locais); falta regravar as evidências no ambiente publicado e o vídeo | #27 |
 
-- Testes: **149** da API (`npm test`) e o roteiro do navegador com **18/18** verificações (`evidencias-u2/`).
+- - Testes da API: **149/149 aprovados**, 0 falhas, executados em 23/11/2026 na `main`, commit `72f8f51`, com Node.js `v24.16.0`.
+  - Comando: `node --test testes/api/*.test.js` (executado dentro de `backend/`).
+  - Evidência: `evidencias-u2/testes-api-2026-11-23.txt`.
+- O PR #29 (`U2 etapa J: banco criado na subida da API e serviços em Ohio`) é o único PR aberto informado nesta atualização; permanece aguardando revisão/merge.
 - **Equipe desde 20/11:** Everton = Web backend e frontend, FCCPD e IA; Thainá = frontend; Aline = BD;
   Drielly = Requisitos (Plano de Testes, validação e refatorações).
 - **Achado em aberto:** a view `vw_indicadores_artesao` soma pedidos cancelados e só conta `pendente`.
   A API calcula os indicadores sem ela; a correção da view está com a Aline (BD).
 - A ordem real mudou em relação à agenda abaixo (D e C vieram antes do H1); a agenda fica como registro do plano original.
 
-## Divisão aprovada em 14/11/2026
+## Divisão de responsabilidades — atualização de 23/11/2026
 
-| Pessoa | Tarefas |
+| Pessoa | Responsabilidades |
 |---|---|
-| **Drielly** (banco) | **H1.1** seed com a artesã da Comunidade do Pilar e mais histórico de compras (até 17/11) · **I.2** dados em volume para o benchmark do FCCPD (até 19/11) · correção da `vw_indicadores_artesao` · **K** code smell no SQL |
-| **Ana** (qualidade) | manutenção do Plano de Testes (8.4–8.6) a partir dos relatórios de cada etapa · aceite com personas das telas ligadas à API · relatório de validação contra os critérios de aceitação (REQ, etapa L, até 30/11) · **K** code smell nos testes |
-| **Thainá** (frontend) | **G.1–G.8** (G.1–G.3 até 20/11) · **K** code smell no frontend |
-| **Everton** (backend e IA) | todas as demais etapas · **K** code smell no backend |
-
-Se o H1.1 ou o I.2 não chegarem até 18/11, o Everton assume, para não arriscar o prazo do FCCPD (24/11).
-Commits da equipe saem da conta de cada pessoa.
-
----
-
+| **Everton** | Backend/API, FCCPD e IA. Responsável pelo PR #29 da etapa J. |
+| **Thainá** | Frontend. |
+| **Aline** | Banco de dados, incluindo índices, benchmark, views e integridade. |
+| **Drielly** | Requisitos: manutenção do Plano de Testes, execução e registro dos testes, refatoração e validação. R-06 já realizada e documentada em `docs/refatoracao/drielly.md`. |
 ## Regras para todas as etapas
 
 - **Um PR por etapa**, branch `feat/u2-<etapa>-<nome>`, aberto por quem fez a etapa.
