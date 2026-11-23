@@ -25,14 +25,24 @@ Render: tudo passa por variáveis de ambiente, então trocar de provedor só mex
 
 ### 1. Banco no Neon
 
-1. Crie um projeto no [Neon](https://neon.tech) e copie a *connection string*. Ela termina em
-   `?sslmode=require`.
-2. Crie as tabelas e o seed, de dentro de `backend/`:
+1. Crie um projeto no [Neon](https://neon.tech) com Postgres 16, na região **AWS US East 2 (Ohio)**,
+   a mesma da API e da IA no `render.yaml` (`region: ohio`). A IA faz várias consultas por
+   recomendação: com o banco em outra região, a soma passa do teto de 2 s e a API cai para a
+   popularidade.
+2. Em **Connect**, copie a *connection string* **sem pooling** (o host não tem `-pooler`). Ela termina
+   em `?sslmode=require`.
+3. As tabelas e o seed são criados **sozinhos** na primeira subida da API: o Render roda
+   `npm run banco:criar -- --se-vazio` antes de `npm run api`. Nas subidas seguintes o script vê que as
+   tabelas já existem e não mexe em nada. No log da primeira subida aparece
+   `Pronto: 13 produtos e 13 usuários.`
+
+   Para criar ou recriar à mão, de dentro de `backend/`:
    ```bash
    DATABASE_URL="postgres://...neon.tech/neondb?sslmode=require" npm run banco:criar
+   DATABASE_URL="postgres://...neon.tech/neondb?sslmode=require" npm run banco:criar -- --apagar-tudo
    ```
-   Deve terminar com `Pronto: 13 produtos e 13 usuários.` Se o banco já tiver tabelas, o script não
-   mexe em nada. Para recriar do zero, use `npm run banco:criar -- --apagar-tudo`.
+   O segundo apaga tudo e recria do zero. Os arquivos de `sql/` rodam numa transação só: se um falhar,
+   nada fica gravado.
 
 ### 2. API e IA no Render
 
@@ -54,7 +64,8 @@ Render: tudo passa por variáveis de ambiente, então trocar de provedor só mex
 2. Variáveis de ambiente:
    - `API_URL` = a URL da API no Render. Ela liga o rewrite: o navegador chama `/api/...` no domínio do
      site, e a Vercel repassa para a API. Assim o cookie de sessão é do mesmo site;
-   - `NEXT_PUBLIC_API_URL` = `/api` (usada pelos services quando a etapa G trocar a Fake API).
+   - `NEXT_PUBLIC_API_URL` = `/api`, o endereço que os services do front chamam. É o padrão, então
+     pode ficar sem.
 3. Faça o deploy e copie a URL do site.
 
 ### 4. Fechar o círculo
@@ -76,6 +87,11 @@ Render: tudo passa por variáveis de ambiente, então trocar de provedor só mex
    (`✅ job ... [notificar_pedido] ok`).
 
 ## O que ainda falta confirmar no primeiro deploy (J.0)
+
+- Se `GET /recomendacoes/eu` vem com `"fonte": "ia"` com a IA acordada. Num teste de 22/11, com a API e a
+  IA rodando em Recife e o banco em Ohio, cada consulta levava cerca de 1 s (a IA abre uma conexão por
+  consulta) e a recomendação caía para a popularidade. No Render, na mesma região do banco, a ida e volta
+  é de cerca de 1 ms.
 
 - Se o BentoML cabe na memória do serviço gratuito (512 MB). Se não couber, as recomendações continuam
   funcionando pela popularidade da API, e a alternativa é subir a IA em outro provedor e trocar só a
