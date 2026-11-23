@@ -34,7 +34,7 @@
 | G | ✅ G.1–G.8, frontend sem Fake API (assumida pelo Everton em 21/11) | #26 |
 | L | ✅ L.1–L.3 e L.5 (evidências locais); falta regravar as evidências no ambiente publicado e o vídeo | #27 |
 
-- - Testes da API: **149/149 aprovados**, 0 falhas, executados em 23/11/2026 na `main`, commit `72f8f51`, com Node.js `v24.16.0`.
+-  Testes da API: **149/149 aprovados**, 0 falhas, executados em 23/11/2026 na `main`, commit `72f8f51`, com Node.js `v24.16.0`.
   - Comando: `node --test testes/api/*.test.js` (executado dentro de `backend/`).
   - Evidência: `evidencias-u2/testes-api-2026-11-23.txt`.
 - O PR #29 (`U2 etapa J: banco criado na subida da API e serviços em Ohio`) é o único PR aberto informado nesta atualização; permanece aguardando revisão/merge.
